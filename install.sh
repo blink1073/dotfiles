@@ -1,0 +1,10 @@
+cp bashrc ~/.bashrc
+cp gitconfig ~/.gitconfig
+cp hgrc ~/.hgrc
+cp inputrc ~/.inputrc
+cp pdbrc ~/.pdbrc
+cp pdbrc.py ~/.pdbrc.py
+cp pypyirc ~/.pypyirc
+cp pythonrc ~/.pythonrc
+cp pythonrc.py ~/.pythonrc.py
+cp acd_func.sh ~

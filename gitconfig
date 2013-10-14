@@ -1,0 +1,22 @@
+[user]
+	name = Steven Silvester
+	email = steven.silvester@ieee.org
+
+[alias]
+        ci = commit -a
+        co = checkout
+        st = status
+        stat = status
+        br = branch
+        wdiff = diff --color-words
+        lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)[%an]%Creset' --abbrev-commit --date=relative
+
+[core]
+        editor = nano
+
+[merge]
+        summary = true
+[giggle]
+	main-window-maximized = false
+	main-window-geometry = 700x549+0+0
+	main-window-view = HistoryView

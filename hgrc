@@ -1,0 +1,7 @@
+[ui]
+username = Steven Silvester <steven.silvester@ieee.org>
+verbose = True
+
+[extensions]
+hgext.bookmarks =
+hggit = 
