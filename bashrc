@@ -20,8 +20,7 @@ function cdsite {
 
 # Change to the directory for a given python module
 function cdpy {
-  cd "$(python -c "import os.path as p, ${1}; \
-    print p.dirname(p.realpath(${1}.__file__[:-1]))"
+  cd "$(python -c "import imp; print(imp.find_module('$1')[1])"
 )"
   pwd
 }
