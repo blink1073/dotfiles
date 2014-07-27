@@ -44,8 +44,11 @@ function parse_git_dirty {
 function parse_git_branch {
   git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e "s/* \(.*\)/(\1$(parse_git_dirty))/"
 }
+hg_ps1() {
+    hg prompt "{{branch}}{ at {bookmark}}{status}" 2> /dev/null
+}
 
-source hg_bash_completion
+source ~/hg_bash_completion
 
 RED='\[\033[1;31m\]'
 GREEN='\[\033[01;32m\]'
@@ -53,4 +56,4 @@ YELLOW='\[\033[01;33m\]'
 BLUE='\[\033[01;34m\]'
 NO_COLOR='\[\033[0m\]'
 
-export PS1=$GREEN'\u:'$BLUE'\w'$YELLOW' $(parse_git_branch)\n'$NO_COLOR'$ '
+export PS1=$GREEN'\u: '$BLUE'\w'$YELLOW' $(hg_ps1)$(parse_git_branch)\n'$NO_COLOR'$ '
