@@ -1,4 +1,5 @@
 cp bashrc ~/.bashrc
+cp hg_bash_completion ~
 cp gitconfig ~/.gitconfig
 cp hgrc ~/.hgrc
 cp inputrc ~/.inputrc

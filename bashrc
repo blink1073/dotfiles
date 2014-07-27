@@ -31,6 +31,7 @@ alias u='cd ..;'
 alias gd='git diff'
 alias gpo='git push origin'
 alias gca='git commit -a'
+alias gs='git status'
 
 export SPYDER_DEBUG=True
 
@@ -43,6 +44,8 @@ function parse_git_dirty {
 function parse_git_branch {
   git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e "s/* \(.*\)/(\1$(parse_git_dirty))/"
 }
+
+source hg_bash_completion
 
 RED='\[\033[1;31m\]'
 GREEN='\[\033[01;32m\]'
