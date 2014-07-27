@@ -27,3 +27,5 @@
     wdiff = diff --word-diff
     prlog = log --grep 'Merge pull request'
 	qlog = log --pretty=oneline --abbrev-commit --graph --decorate
+[credential]
+	helper = cache --timeout=3600
