@@ -1,22 +1,29 @@
 [user]
-	name = Steven Silvester
 	email = steven.silvester@ieee.org
-
-[alias]
-        ci = commit -a
-        co = checkout
-        st = status
-        stat = status
-        br = branch
-        wdiff = diff --color-words
-        lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)[%an]%Creset' --abbrev-commit --date=relative
-
+	name = Steven Silvester
+[github]
+    user = blink1073
+[push]
+	default = matching
+[color]
+    diff = auto
+    status = auto
+    branch = auto
+    ui = auto
 [core]
-        editor = nano
-
-[merge]
-        summary = true
-[giggle]
-	main-window-maximized = false
-	main-window-geometry = 700x549+0+0
-	main-window-view = HistoryView
+    excludesfile = ~/.gitignore
+    editor = nano
+    pager = less -r
+[gui]
+    fontui = -family Inconsolata -size 12 -weight normal -slant roman -underline 0 -overstrike 0
+    fontdiff = -family Inconsolata -size 12 -weight normal -slant roman -underline 0 -overstrike 0
+[alias]
+    st = status
+    co = checkout
+    po = push origin
+    ca = checkout -a
+    del = branch --delete
+    sdiff = diff --staged
+    wdiff = diff --word-diff
+    prlog = log --grep 'Merge pull request'
+	qlog = log --pretty=oneline --abbrev-commit --graph --decorate

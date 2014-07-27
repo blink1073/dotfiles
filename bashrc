@@ -26,21 +26,28 @@ function cdpy {
   pwd
 }
 
-# advanced cd function
-source ~/acd_func.sh
-
-export EDITOR=notepad
-export PS1='\[\033[01;32m\]\u \[\033[01;34m\]\W \$ \[\033[00m\]'
-export PYTHONSTARTUP=~/.pythonrc
 # aliases
-alias dprojects='cd ~/Dropbox/projects'
-alias dworkspace='cd ~/Dropbox/workspace'
-alias pip=pip-2.7
 alias u='cd ..;'
-alias open=start
+alias gd='git diff'
+alias gpo='git push origin'
+alias gca='git commit -a'
 
 export SPYDER_DEBUG=True
 
-alias python3=/c/Python33/python
-alias pip3=/c/Python33/Scripts/pip
-alias nosetests3=/c/Python33/Scripts/nosetests
+export PATH="/home/silvester/anaconda/bin:$PATH"
+
+# Parse git branch state and display at prompt
+function parse_git_dirty {
+  [[ $(git status 2> /dev/null | tail -n1 | awk '{print $1}') != "nothing" ]] && echo "*"
+}
+function parse_git_branch {
+  git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e "s/* \(.*\)/(\1$(parse_git_dirty))/"
+}
+
+RED='\[\033[1;31m\]'
+GREEN='\[\033[01;32m\]'
+YELLOW='\[\033[01;33m\]'
+BLUE='\[\033[01;34m\]'
+NO_COLOR='\[\033[0m\]'
+
+export PS1=$GREEN'\u:'$BLUE'\w'$YELLOW' $(parse_git_branch)\n'$NO_COLOR'$ '

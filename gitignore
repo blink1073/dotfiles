@@ -1,0 +1,8 @@
+# Python related
+*.prof
+*.pyo
+*.pyc
+*.so
+*.o
+.coverage
+__enamlcache__
