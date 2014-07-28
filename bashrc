@@ -25,10 +25,12 @@ function cdpy {
 
 # aliases
 alias u='cd ..;'
-alias gd='git diff'
-alias gpo='git push origin'
 alias gca='git commit -a'
 alias gs='git status'
+
+source ~/.git-completion.sh
+__git_complete gco _git_checkout
+__git_complete gd _git_diff
 
 export SPYDER_DEBUG=True
 
