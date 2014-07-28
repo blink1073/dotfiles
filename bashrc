@@ -27,6 +27,7 @@ function cdpy {
 alias u='cd ..;'
 alias gca='git commit -a'
 alias gs='git status'
+alias gpo='git push origin'
 
 source ~/.git-completion.sh
 __git_complete gco _git_checkout
