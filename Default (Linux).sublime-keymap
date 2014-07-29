@@ -1,0 +1,24 @@
+[
+    // emacs navigation keys
+	{ "keys": ["ctrl+a"], "command": "move_to", "args": {"to": "bol", "extend": false} },
+	{ "keys": ["ctrl+e"], "command": "move_to", "args": {"to": "eol", "extend": false} },
+	{ "keys": ["ctrl+p"], "command": "move", "args": {"by": "lines", "forward": false} },
+	{ "keys": ["ctrl+n"], "command": "move", "args": {"by": "lines", "forward": true} },
+    { "keys": ["ctrl+k"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Delete to Hard EOL.sublime-macro"} },
+    { "keys": ["ctrl+u"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Delete to Hard BOL.sublime-macro"} },
+
+	// adjust overridden keys
+	{ "keys": ["alt+a"], "command": "select_all" },
+	{ "keys": ["alt+p"], "command": "show_overlay", "args": {"overlay": "goto", "show_files": true} },
+    { "keys": ["alt+u"], "command": "soft_undo" },
+    { "keys": ["alt+k", "alt+b"], "command": "toggle_side_bar" },
+
+    // move major commands to alt+
+	{ "keys": ["alt+shift+p"], "command": "show_overlay", "args": {"overlay": "command_palette"} },
+    { "keys": ["alt+r"], "command": "show_overlay", "args": {"overlay": "goto", "text": "@"} },
+    { "keys": ["alt+;"], "command": "show_overlay", "args": {"overlay": "goto", "text": "#"} },
+    { "keys": ["alt+l"], "command": "show_overlay", "args": {"overlay": "goto", "text": ":"} },
+    { "keys": ["alt+i"], "command": "show_panel", "args": {"panel": "incremental_find", "reverse": false} },
+    { "keys": ["alt+shift+i"], "command": "show_panel", "args": {"panel": "incremental_find", "reverse": true} },
+
+]
