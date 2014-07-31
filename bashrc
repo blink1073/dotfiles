@@ -39,13 +39,23 @@ alias nano="nano -c"
 alias gca='git commit -a --verbose'
 alias gs='git status --verbose'
 alias gpo='git push origin'
+alias gb='git branch'
 
 source ~/.git-completion.sh
-source ~/hg_bash_completion
 
 __git_complete gco _git_checkout
 __git_complete gd _git_diff
 __git_complete gp _git_push
+
+alias hc='hg commit --verbose'
+alias hs='hg status --verbose'
+alias hpo='hg push origin'
+alias hb='hg branches'
+alias hco='hg checkout'
+alias hd='hg diff'
+alias hp='hg push'
+
+source ~/hg_bash_completion
 
 export SPYDER_DEBUG=True
 export PATH="/home/silvester/anaconda/bin:$PATH"
