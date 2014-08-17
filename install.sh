@@ -12,3 +12,4 @@ cp pythonrc.py ~/.pythonrc.py
 mkdir ~/.config
 mkdir ~/.config/matplotlib
 cp matplotlibrc ~/.config/matplotlib
+source ~/.bashrc
