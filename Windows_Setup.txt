@@ -1,0 +1,22 @@
+Windows Setup
+------------------------
+Google Chrome
+Octave
+Rapid Environment Editor
+Sublime Text 3
+Console 2
+Git for Windows
+Scilab
+Nano
+Anaconda
+tortoisehg
+
+
+Environment variables:
+PATH: Anaconda, Anaconda Scipts, Git path, Octave path, Octave msys (for make), sublime path
+set HOME
+
+Run the anaconda bash program
+
+Console setup:
+C:\Users\User\AppData\Roaming\Console
