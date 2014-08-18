@@ -12,4 +12,6 @@ cp pythonrc.py ~/.pythonrc.py
 mkdir ~/.config
 mkdir ~/.config/matplotlib
 cp matplotlibrc ~/.config/matplotlib
+ipython profile create
+cp ipython_startup.py ~/.ipython/profile_default/startup/
 source ~/.bashrc
