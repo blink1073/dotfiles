@@ -8,9 +8,11 @@ Console 2
 Git for Windows
 Scilab
 Nano
-Anaconda
+Miniconda
 tortoisehg
-
+Ubuntu 12.04
+vcredist 2010 x86
+Virtualbox
 
 Environment variables:
 PATH: Anaconda, Anaconda Scipts, Git path, Octave path, Octave msys (for make), sublime path

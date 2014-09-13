@@ -32,14 +32,16 @@ alias u='cd ..;'
 alias ll='ls -l'
 alias la='ls -a'
 alias xclip="xclip -selection c"
-
+alias find='\usr\bin\find'
 alias search="grep -rinI"
 alias nano="nano -c"
+alias scilab='Scilex'
 
 alias gca='git commit -a --verbose'
 alias gs='git status --verbose'
 alias gpo='git push origin'
 alias gb='git branch'
+alias gd='git diff'
 
 source ~/.git-completion.sh
 
@@ -61,31 +63,38 @@ export SPYDER_DEBUG=True
 export PATH="/home/silvester/anaconda/bin:$PATH"
 
 # build up PS1 with source control annotation
-function hg_dirty() {
-    expr $(hg status 2> /dev/null | egrep "^(M| ?)" | wc -l)
+function source_control {
+  echo `python  -c """
+import re
+import subprocess as sp
+output=''
+try:
+    git_text = sp.check_output('git status -b -s', stderr=sp.STDOUT)
+except sp.CalledProcessError:
+    pass
+else:
+    match = re.match('## ([a-zA-Z-_0-9]*)', git_text)
+    if match:
+        output = '%s %s' % (match.groups()[0],
+                                           len(git_text.splitlines()) - 1)
+if not output:
+    try:
+        hg_text = sp.check_output('hg summary')
+    except sp.CalledProcessError:
+        pass
+    else:
+        match = re.search('branch: ([a-zA-Z-_0-9]*)', hg_text)
+        if 'commit: (clean)' in hg_text and match:
+            print('%s 0' % match.groups()[0])
+        elif match:
+            lines = hg_text.splitlines()
+            for line in lines:
+                if line.startswith('commit:'):
+                    numbers = re.findall('\d+', line)
+                    dirty = sum(int(n) for n in numbers)
+                    output = '%s %s' % (match.groups()[0], dirty)
+print(output)"""`
 }
-
-function hg_bookmark() {
-   expr 2> /dev/null $(hg bookmark 2> /dev/null | awk '$1 == "*" {print "", $2}')
-}
-
-hg_branch() {
-    hg branch 2> /dev/null | awk -v b=$(hg_bookmark) -v d=$(hg_dirty) '{print $1 " " b " " d}'
-}
-
-function git_dirty {
-  # Get number of total uncommited files
-  expr $(git status --porcelain 2>/dev/null| egrep "^(M| M|?| ?)" | wc -l)
-}
-
-git_branch() {
-   git branch --no-color 2> /dev/null | awk -v d=$(git_dirty) '$1 == "*" {print $2 " " d}'
-}
-
-source_control() {
-    echo "$(git_branch)$(hg_branch)"
-}
-
 
 RED='\[\033[1;31m\]'
 GREEN='\[\033[01;32m\]'
