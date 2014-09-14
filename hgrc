@@ -4,4 +4,3 @@ verbose = True
 
 [extensions]
 hgext.bookmarks =
-prompt=/home/silvester/hg-prompt.py
