@@ -32,7 +32,7 @@ alias u='cd ..;'
 alias ll='ls -l'
 alias la='ls -a'
 alias xclip="xclip -selection c"
-alias find='/usr/bin/find . -name'
+#alias find='/usr/bin/find . -name'
 #alias search="grep -rinI"
 alias nano="nano -c"
 alias scilab='Scilex'
@@ -61,6 +61,10 @@ source ~/hg_bash_completion
 
 export SPYDER_DEBUG=True
 export PATH="/home/silvester/anaconda/bin:$PATH"
+
+function find() {
+    /usr/bin/find . -name "$1"
+}
 
 function search() {
     grep -irn $1 .
