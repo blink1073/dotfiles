@@ -11,6 +11,7 @@ Nano
 Miniconda
 tortoisehg
 Ubuntu 12.04
+Ubuntu 14.04
 vcredist 2010 x86
 Virtualbox
 Visual Studio 2008
