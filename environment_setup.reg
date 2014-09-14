@@ -1,6 +1,0 @@
-REGEDIT4
-
-; User: User
-[HKEY_CURRENT_USER\Environment]
-"HOME"=hex(2):43,3A,5C,55,73,65,72,73,5C,55,73,65,72,00
-"PATH"="C:\\Users\\User\\Anaconda;C:\\Users\\User\\Anaconda\\Scripts;C:\\Octave-3.6.4\\msys\\bin;C:\\Program Files (x86)\\Git\\bin;C:\\Octave-3.6.4\\bin;C:\\Program Files (x86)\\Sublime Text 3"
