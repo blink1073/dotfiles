@@ -33,7 +33,7 @@ alias ll='ls -l'
 alias la='ls -a'
 alias xclip="xclip -selection c"
 alias find='/usr/bin/find .'
-alias search="grep -rinI"
+#alias search="grep -rinI"
 alias nano="nano -c"
 alias scilab='Scilex'
 
@@ -61,6 +61,10 @@ source ~/hg_bash_completion
 
 export SPYDER_DEBUG=True
 export PATH="/home/silvester/anaconda/bin:$PATH"
+
+function search() {
+    grep -irn $1 .
+}
 
 # build up PS1 with source control annotation
 function source_control {
