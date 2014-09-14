@@ -28,4 +28,4 @@
     prlog = log --grep 'Merge pull request'
 	qlog = log --pretty=oneline --abbrev-commit --graph --decorate
 [credential]
-	helper = wincred --timeout=3600
+	helper = wincred
