@@ -79,7 +79,7 @@ else:
                                            len(git_text.splitlines()) - 1)
 if not output:
     try:
-        hg_text = sp.check_output('hg summary')
+        hg_text = sp.check_output('hg summary', stderr=sp.STDOUT)
     except sp.CalledProcessError:
         pass
     else:
