@@ -4,7 +4,7 @@ Google Chrome
 Octave
 Rapid Environment Editor
 Sublime Text 3
-Console 2
+ConEmu
 Git for Windows
 Scilab
 Nano
@@ -13,12 +13,11 @@ tortoisehg
 Ubuntu 12.04
 vcredist 2010 x86
 Virtualbox
+Visual Studio 2008
+
 
 Environment variables:
 PATH: Anaconda, Anaconda Scipts, Git path, Octave path, Octave msys (for make), sublime path
 set HOME
 
 Run the anaconda bash program
-
-Console setup:
-C:\Users\User\AppData\Roaming\Console
