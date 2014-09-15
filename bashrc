@@ -31,17 +31,17 @@ function edit {
 alias u='cd ..;'
 alias ll='ls -l'
 alias la='ls -a'
-alias xclip="xclip -selection c"
-#alias find='/usr/bin/find . -name'
-#alias search="grep -rinI"
+
 alias nano="nano -c"
 alias scilab='Scilex'
 
 alias gca='git commit -a --verbose'
-alias gs='git status --verbose'
+alias gs='git status'
+alias gsv='git status --verbose'
 alias gpo='git push origin'
 alias gb='git branch'
 alias gd='git diff'
+alias ga='git add'
 
 source ~/.git-completion.sh
 
@@ -50,12 +50,14 @@ __git_complete gd _git_diff
 __git_complete gp _git_push
 
 alias hc='hg commit --verbose'
-alias hs='hg status --verbose'
+alias hs='hg status'
+alias hsv='hg status --verbose'
 alias hpo='hg push origin'
 alias hb='hg branches'
 alias hco='hg checkout'
 alias hd='hg diff'
 alias hp='hg push'
+alias ha='hg add'
 
 source ~/hg_bash_completion
 
@@ -75,6 +77,7 @@ function source_control {
   echo `python  -c """
 import re
 import subprocess as sp
+import os
 output=''
 try:
     git_text = sp.check_output('git status -b -s', stderr=sp.STDOUT)
