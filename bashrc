@@ -69,7 +69,7 @@ function find() {
 }
 
 function search() {
-    grep -irn $1 .
+    grep -irn "$1" .
 }
 
 # build up PS1 with source control annotation
@@ -77,7 +77,6 @@ function source_control {
   echo `python  -c """
 import re
 import subprocess as sp
-import os
 output=''
 try:
     git_text = sp.check_output('git status -b -s', stderr=sp.STDOUT)
