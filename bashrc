@@ -34,6 +34,7 @@ alias la='ls -a'
 
 alias nano="nano -c"
 alias scilab='Scilex'
+alias ipython="trap '' 2; /c/Users/silvester/Anaconda/Scripts/ipython;trap 2 ;"
 
 alias gca='git commit -a --verbose'
 alias gs='git status'
@@ -44,6 +45,7 @@ alias gu='git pull upstream'
 alias gb='git branch'
 alias gd='git diff'
 alias ga='git add'
+alias gc='git commit --verbose'
 
 source ~/.git-completion.sh
 
