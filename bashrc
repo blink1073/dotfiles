@@ -92,7 +92,8 @@ import re
 import subprocess as sp
 output=''
 try:
-    git_text = sp.check_output('git status -b -s', stderr=sp.STDOUT)
+    git_text = sp.check_output(['git', 'status', '-b',
+        '-s'], stderr=sp.STDOUT)
 except sp.CalledProcessError:
     pass
 else:
@@ -102,7 +103,7 @@ else:
                                            len(git_text.splitlines()) - 1)
 if not output:
     try:
-        hg_text = sp.check_output('hg summary', stderr=sp.STDOUT)
+        hg_text = sp.check_output(['hg', 'summary'], stderr=sp.STDOUT)
     except sp.CalledProcessError:
         pass
     else:
@@ -126,3 +127,6 @@ BLUE='\[\033[01;34m\]'
 NO_COLOR='\[\033[0m\]'
 
 export PS1=$GREEN'\u: '$BLUE'\w'$YELLOW' $(source_control)\n'$NO_COLOR'$ '
+
+# added by Anaconda 2.0.1 installer
+export PATH="/home/afrl/anaconda/bin:$PATH"
