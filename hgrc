@@ -1,6 +1,19 @@
 [ui]
 username = Steven Silvester <steven.silvester@ieee.org>
 verbose = True
+merge = winmergeu
 
 [extensions]
 hgext.bookmarks =
+
+[extdiff]
+cmd.winmerge = C:\Program Files\WinMerge\WinMerge.exe
+opts.winmerge = /e /x /ub /wl
+
+[auth]
+bitbucket.prefix = bitbucket.org
+bitbucket.username = blink1073
+
+
+[tortoisehg]
+vdiff = winmerge
