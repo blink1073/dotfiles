@@ -127,6 +127,3 @@ BLUE='\[\033[01;34m\]'
 NO_COLOR='\[\033[0m\]'
 
 export PS1=$GREEN'\u: '$BLUE'\w'$YELLOW' $(source_control)\n'$NO_COLOR'$ '
-
-# added by Anaconda 2.0.1 installer
-export PATH="/home/afrl/anaconda/bin:$PATH"
