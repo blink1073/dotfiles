@@ -34,7 +34,16 @@ alias la='ls -a'
 
 alias nano="nano -c"
 alias scilab='Scilex'
-alias ipython="trap '' 2; /c/Users/silvester/Anaconda/Scripts/ipython;trap 2 ;"
+
+function ipython {
+    if [ "$#" -eq 0 ]; then
+        trap '' 2;
+        /c/Users/silvester/Anaconda/Scripts/ipython;
+        trap 2;
+    else
+        /c/Users/silvester/Anaconda/Scripts/ipython $@;
+    fi
+}
 
 alias gca='git commit -a --verbose'
 alias gs='git status'
