@@ -1,4 +1,5 @@
 export HISTCONTROL=ignoreboth
+export HISTFILESIZE=2500
 # append to the history file, don't overwrite it
 shopt -s histappend
 # check the window size after each command and, if necessary,
@@ -12,9 +13,7 @@ alias pstats='python -m pstats'
 
 # Change to Python's site-packages directory.
 function cdsite {
-  cd "$(python -c "import site; \
-    print site.getsitepackages()[-1]"
-)"
+  cd "$(python -c "import site; print site.getsitepackages()[-1]")"
 }
 
 # Change to the directory for a given python module
@@ -33,17 +32,6 @@ alias ll='ls -l'
 alias la='ls -a'
 
 alias nano="nano -c"
-alias scilab='Scilex'
-
-function ipython {
-    if [ "$#" -eq 0 ]; then
-        trap '' 2;
-        /c/Users/silvester/Anaconda/Scripts/ipython;
-        trap 2;
-    else
-        /c/Users/silvester/Anaconda/Scripts/ipython $@;
-    fi
-}
 
 alias gca='git commit -a --verbose'
 alias gs='git status'
@@ -77,12 +65,12 @@ source ~/hg_bash_completion
 export SPYDER_DEBUG=True
 export PATH="/home/silvester/anaconda/bin:$PATH"
 
-function find() {
-    /usr/bin/find . -name "$1"
-}
-
 function search() {
     grep -irn "$1" .
+}
+
+function gn() {
+    git checkout -b "$1" upstream/master
 }
 
 # build up PS1 with source control annotation
@@ -93,8 +81,8 @@ import subprocess as sp
 output=''
 try:
     git_text = sp.check_output(['git', 'status', '-b',
-        '-s'], stderr=sp.STDOUT)
-except sp.CalledProcessError:
+        '-s'], stderr=sp.STDOUT).decode('utf-8', 'replace')
+except (sp.CalledProcessError, OSError):
     pass
 else:
     match = re.match('## ([a-zA-Z-_0-9]*)', git_text)
@@ -104,9 +92,10 @@ else:
 if not output:
     try:
         hg_text = sp.check_output(['hg', 'summary'], stderr=sp.STDOUT)
-    except sp.CalledProcessError:
+    except (sp.CalledProcessError, OSError):
         pass
     else:
+        hg_text = hg_text.decode('utf-8', 'replace')
         match = re.search('branch: ([a-zA-Z-_0-9]*)', hg_text)
         if 'commit: (clean)' in hg_text and match:
             print('%s 0' % match.groups()[0])

@@ -6,8 +6,6 @@ cp gitconfig ~/.gitconfig
 cp git-completion.sh ~/.git-completion.sh
 cp hgrc ~/.hgrc
 cp inputrc ~/.inputrc
-cp pdbrc ~/.pdbrc
-cp pdbrc.py ~/.pdbrc.py
 cp pythonrc ~/.pythonrc
 cp pythonrc.py ~/.pythonrc.py
 mkdir ~/.config
@@ -16,9 +14,4 @@ cp matplotlibrc ~/.config/matplotlib
 ipython profile create
 cp ipython_startup.py ~/.ipython/profile_default/startup/
 
-python anaconda_bash_script_maker.py
-
-sublime=~/AppData/Roaming/Sublime\ Text\ 3/Packages/User
-cp Default\ \(Windows\).sublime-keymap "$sublime"
-cp Preferences.sublime-settings "$sublime"
-
+#python anaconda_bash_script_maker.py
