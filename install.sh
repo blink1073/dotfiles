@@ -1,9 +1,8 @@
 cd ~/workspace/dotfiles
 cp bashrc ~/.bashrc
-cp hg_bash_completion ~
+cp hub_bash_completion.sh ~/.hub_bash_completion.sh
 cp gitignore ~/.gitignore
 cp gitconfig ~/.gitconfig
-cp git-completion.sh ~/.git-completion.sh
 cp hgrc ~/.hgrc
 cp inputrc ~/.inputrc
 cp pythonrc ~/.pythonrc
