@@ -1,6 +1,6 @@
 [
     // emacs navigation keys
-	{ "keys": ["ctrl+a"], "command": "move_to", "args": {"to": "bol", "extend": false} },
+	{ "keys": ["ctrl+shift+a"], "command": "move_to", "args": {"to": "bol", "extend": false} },
 	{ "keys": ["ctrl+e"], "command": "move_to", "args": {"to": "eol", "extend": false} },
 	{ "keys": ["ctrl+p"], "command": "move", "args": {"by": "lines", "forward": false} },
 	{ "keys": ["ctrl+n"], "command": "move", "args": {"by": "lines", "forward": true} },
@@ -8,7 +8,6 @@
     { "keys": ["ctrl+u"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Delete to Hard BOL.sublime-macro"} },
 
 	// adjust overridden keys
-	{ "keys": ["ctrl+shift+a"], "command": "select_all" },
 	{ "keys": ["alt+p"], "command": "show_overlay", "args": {"overlay": "goto", "show_files": true} },
     { "keys": ["alt+u"], "command": "soft_undo" },
     { "keys": ["alt+k", "alt+b"], "command": "toggle_side_bar" },
