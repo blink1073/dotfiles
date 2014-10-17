@@ -63,7 +63,7 @@ alias ha='hg add'
 source ~/hg_bash_completion
 
 export SPYDER_DEBUG=True
-export PATH="/home/silvester/anaconda/bin:$PATH"
+export PATH="$HOME/anaconda/bin:$PATH"
 
 function search() {
     grep -irn "$1" .
