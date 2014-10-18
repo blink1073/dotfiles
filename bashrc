@@ -44,11 +44,9 @@ alias gd='git diff'
 alias ga='git add'
 alias gc='git commit --verbose'
 
-source ~/.git-completion.sh
+eval "$(hub alias -s)"
 
-__git_complete gco _git_checkout
-__git_complete gd _git_diff
-__git_complete gp _git_push
+source ~/.hub_bash_completion.sh
 
 alias hc='hg commit --verbose'
 alias hs='hg status'
@@ -63,7 +61,7 @@ alias ha='hg add'
 source ~/hg_bash_completion
 
 export SPYDER_DEBUG=True
-export PATH="/home/silvester/anaconda/bin:$PATH"
+export PATH="$HOME/anaconda/bin:$PATH"
 
 function search() {
     grep -irn "$1" .
