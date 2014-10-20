@@ -1,4 +1,5 @@
 cd ~/workspace/dotfiles
+pip install hub
 cp bashrc ~/.bashrc
 cp hg_bash_completion ~
 cp gitignore ~/.gitignore
