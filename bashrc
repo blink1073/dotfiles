@@ -44,7 +44,8 @@ alias gd='git diff'
 alias ga='git add'
 alias gc='git commit --verbose'
 
-source ~/.git-completion.sh
+eval "$(hub alias -s)"
+source ~/.hub_bash_completion.sh
 
 __git_complete gco _git_checkout
 __git_complete gd _git_diff

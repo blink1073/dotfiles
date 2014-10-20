@@ -3,7 +3,7 @@ cp bashrc ~/.bashrc
 cp hg_bash_completion ~
 cp gitignore ~/.gitignore
 cp gitconfig ~/.gitconfig
-cp git-completion.sh ~/.git-completion.sh
+cp hub_bash_completion.sh ~/.hub_bash_completion.sh
 cp hgrc ~/.hgrc
 cp inputrc ~/.inputrc
 cp pythonrc ~/.pythonrc
