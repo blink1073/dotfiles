@@ -44,12 +44,10 @@ alias gd='git diff'
 alias ga='git add'
 alias gc='git commit --verbose'
 
+export PATH="$HOME/bin:$PATH"
 eval "$(hub alias -s)"
 source ~/.hub_bash_completion.sh
 
-__git_complete gco _git_checkout
-__git_complete gd _git_diff
-__git_complete gp _git_push
 
 alias hc='hg commit --verbose'
 alias hs='hg status'
@@ -71,6 +69,7 @@ function search() {
 }
 
 function gn() {
+    git fetch upstream master
     git checkout -b "$1" upstream/master
 }
 
