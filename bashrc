@@ -48,8 +48,9 @@ alias gd='git diff'
 alias ga='git add'
 alias gc='git commit --verbose'
 
-eval "$(hub alias -s)"
 
+export PATH="$HOME/bin:$PATH"
+eval "$(hub alias -s)"
 source ~/.hub_bash_completion.sh
 
 alias hc='hg commit --verbose'

@@ -1,8 +1,10 @@
 cd ~/workspace/dotfiles
+pip install hub
 cp bashrc ~/.bashrc
 cp hub_bash_completion.sh ~/.hub_bash_completion.sh
 cp gitignore ~/.gitignore
 cp gitconfig ~/.gitconfig
+cp hub_bash_completion.sh ~/.hub_bash_completion.sh
 cp hgrc ~/.hgrc
 cp inputrc ~/.inputrc
 cp pythonrc ~/.pythonrc
