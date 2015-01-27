@@ -32,6 +32,10 @@ alias ll='ls -l'
 alias la='ls -a'
 
 alias nano="nano -c"
+alias open='xdg-open'
+alias pi="ssh pi@10.0.1.112"
+alias mpl="cd ~/workspace/matplotlib/lib/matplotlib/backends"
+alias sk="cd ~/workspace/scikit-image/skimage"
 
 alias gca='git commit -a --verbose'
 alias gs='git status'
@@ -61,15 +65,32 @@ alias ha='hg add'
 source ~/hg_bash_completion
 
 export SPYDER_DEBUG=True
+export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/anaconda/bin:$PATH"
+#alias python=python3
+
 
 function search() {
     grep -irn "$1" .
 }
 
 function gn() {
+    git fetch upstream master
     git checkout -b "$1" upstream/master
 }
+
+function grb() {
+    git fetch upstream master
+    git rebase -i upstream/master
+}
+
+function gpr() {
+    git checkout master
+    git branch -D pr/$1
+    git fetch upstream pull/$1/head:pr/$1
+    git checkout pr/$1
+}
+
 
 # build up PS1 with source control annotation
 function source_control {
@@ -83,10 +104,12 @@ try:
 except (sp.CalledProcessError, OSError):
     pass
 else:
-    match = re.match('## ([a-zA-Z-_0-9]*)', git_text)
+    match = re.match('## (.*)', git_text)
     if match:
-        output = '%s %s' % (match.groups()[0],
-                                           len(git_text.splitlines()) - 1)
+        match = match.groups()[0]
+        if '...' in match:
+            match, _, _ = match.partition('...')
+        output = '(%s) %s' % (match, len(git_text.splitlines()) - 1)
 if not output:
     try:
         hg_text = sp.check_output(['hg', 'summary'], stderr=sp.STDOUT)
@@ -94,7 +117,7 @@ if not output:
         pass
     else:
         hg_text = hg_text.decode('utf-8', 'replace')
-        match = re.search('branch: ([a-zA-Z-_0-9]*)', hg_text)
+        match = re.search('branch: (.*)', hg_text)
         if 'commit: (clean)' in hg_text and match:
             print('%s 0' % match.groups()[0])
         elif match:

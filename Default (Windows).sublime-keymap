@@ -20,9 +20,9 @@
     { "keys": ["alt+i"], "command": "show_panel", "args": {"panel": "incremental_find", "reverse": false} },
     { "keys": ["alt+shift+i"], "command": "show_panel", "args": {"panel": "incremental_find", "reverse": true} },
 
-    {"command": "anaconda_goto", "keys": ["super+g"]},
+    {"command": "anaconda_goto", "keys": ["control+shif+g"]},
     {"command": "anaconda_find_usages", "keys": ["super+f"]},
-    {"command": "anaconda_doc", "keys": ["super+d"]},
+    {"command": "anaconda_doc", "keys": ["control+shift+d"]},
     {"command": "anaconda_auto_format", "keys": ["super+r"]},
     {"command": "anaconda_goto", "keys": ["g", "d"],
         "context":
