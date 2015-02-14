@@ -48,9 +48,8 @@ alias gd='git diff'
 alias ga='git add'
 alias gc='git commit --verbose'
 
-
-export PATH="$HOME/bin:$PATH"
 eval "$(hub alias -s)"
+
 source ~/.hub_bash_completion.sh
 
 alias hc='hg commit --verbose'
@@ -87,7 +86,7 @@ function grb() {
 
 function gpr() {
     git checkout master
-    git branch -D pr/$1
+    git branch -D pr/$1 2>/dev/null
     git fetch upstream pull/$1/head:pr/$1
     git checkout pr/$1
 }

@@ -31,3 +31,5 @@
 	helper = cache --timeout=3600
 [hub]
 	protocol = https
+[http]
+	sslverify = false

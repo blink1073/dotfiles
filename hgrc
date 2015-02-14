@@ -5,6 +5,7 @@ merge = winmergeu
 
 [extensions]
 hgext.bookmarks =
+hggit=
 
 [extdiff]
 cmd.winmerge = C:\Program Files\WinMerge\WinMerge.exe
