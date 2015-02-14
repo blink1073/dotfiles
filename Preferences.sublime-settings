@@ -26,8 +26,8 @@
 	"highlight_modified_tabs": true,
 	"ignored_packages":
 	[
-		"Vintage",
-		"SublimeCodeIntel"
+		"SublimeCodeIntel",
+		"Vintage"
 	],
 	"line_padding_bottom": 0,
 	"line_padding_top": 0,

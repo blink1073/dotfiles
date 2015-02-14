@@ -1,5 +1,5 @@
 cd ~/workspace/dotfiles
-pip install hub
+
 cp bashrc ~/.bashrc
 cp hub_bash_completion.sh ~/.hub_bash_completion.sh
 cp gitignore ~/.gitignore
@@ -15,4 +15,9 @@ cp matplotlibrc ~/.config/matplotlib
 ipython profile create
 cp ipython_startup.py ~/.ipython/profile_default/startup/
 
-#python anaconda_bash_script_maker.py
+sublime=~/.config/sublime-text-3/Packages/User
+cp Python.sublime-settings $sublime
+cp Preferences.sublime-settings $sublime
+cp "Default (Linux).sublime-keymap" $sublime
+cp debug.sublime-snippet $sublime
+cp Anaconda.sublime-settings $sublime
