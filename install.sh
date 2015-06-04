@@ -15,7 +15,7 @@ cp matplotlibrc ~/.config/matplotlib
 ipython profile create
 cp ipython_startup.py ~/.ipython/profile_default/startup/
 
-sublime=~/.config/sublime-text-3/Packages/User
+sublime=~/Library/Application\ Support/Sublime\ Text\ 3//Packages/User
 cp Python.sublime-settings $sublime
 cp Preferences.sublime-settings $sublime
 cp "Default (Linux).sublime-keymap" $sublime
