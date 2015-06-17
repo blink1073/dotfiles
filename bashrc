@@ -133,7 +133,7 @@ print(output)"""`
 RED='\[\033[1;31m\]'
 GREEN='\[\033[01;32m\]'
 YELLOW='\[\033[01;33m\]'
-BLUE='\[\033[01;34m\]'
+CYAN='\[\033[00;36m\]'
 NO_COLOR='\[\033[0m\]'
 
-export PS1=$GREEN'\u: '$BLUE'\w'$YELLOW' $(source_control)\n'$NO_COLOR'$ '
+export PS1=$GREEN'\u: '$CYAN'\w'$YELLOW' $(source_control)\n'$NO_COLOR'$ '
