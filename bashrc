@@ -126,6 +126,28 @@ else:
 print(output)"""`
 }
 
+
+# build up PS1 with source control annotation
+function source_control {
+  echo `python  -c """
+import re
+import subprocess as sp
+output=''
+try:
+    git_text = sp.check_output(['git', 'status', '-b',
+        '-s'], stderr=sp.STDOUT).decode('utf-8', 'replace')
+except (sp.CalledProcessError, OSError):
+    pass
+else:
+    match = re.match('## (.*)', git_text)
+    if match:
+        match = match.groups()[0]
+        if '...' in match:
+            match, _, _ = match.partition('...')
+        output = '(%s) %s' % (match, len(git_text.splitlines()) - 1)
+print(output)"""`
+}
+
 RED='\[\033[0;31m\]'
 GREEN='\[\033[00;32m\]'
 YELLOW='\[\033[00;33m\]'
