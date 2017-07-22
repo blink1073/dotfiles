@@ -20,7 +20,7 @@ function cdsite {
 
 # Change to the directory for a given python module
 function cdpy {
-  cd "$(python -c "import imp, os; print(os.path.dirname(imp.find_module('$1')[1]))")"
+  cd "$(python -c "import imp, os; print(imp.find_module('$1')[1])")" 2>/dev/null || cd "$(python -c "import imp, os; print(os.path.dirname(imp.find_module('$1')[1]))")" 
 }
 
 function edit {
@@ -52,20 +52,34 @@ function npm-preminor {
 }
 
 function npm-backport {
+    # Check out the backport branch itself and git pull origin branch
+    if [ "$#" -ne 1 ]; then
+        echo "Specify the backport branch"
+    fi
+    git checkout $1
+    git pull origin $1
     npm update
     npm version patch
-    git push origin master && git push origin --tags
+    git push origin $1 && git push origin --tags
     npm publish
 }
 
-function pyrelease {
+function py-release {
+    local version=`python setup.py --version 2>/dev/null`
+    git commit -a -m "Release $version"
+    git tag v$version; true;
+    git push origin --all 
+    git push origin --tags
     rm -rf dist
     python setup.py sdist
     python setup.py bdist_wheel --universal
     twine upload dist/*
-    shasum -a 256 dist/*.tar.gz | awk '{print $1;}' | pbcopy
-    local name = `python setup.py --name 2>/dev/null`
-    local version = `python setup.py --version 2>/dev/null`
+}
+
+function conda-release {
+    shasum -a 256 dist/*.tar.gz | awk '{printf $1;}' | pbcopy
+    local name=`python setup.py --name 2>/dev/null`
+    local version=`python setup.py --version 2>/dev/null`
     open https://github.com/conda-forge/$name-feedstock
     cd ~/workspace/$name-feedstock
     git fetch upstream master
@@ -76,9 +90,9 @@ function pyrelease {
 function lab-test {
     source activate lab-test
     pip uninstall -y jupyterlab
-    pip install jupyterlab
+    pip install --pre jupyterlab 
     cd ~/workspace
-    jupyter lab
+    jupyter lab --core-mode
 }
 
 
@@ -115,7 +129,8 @@ alias gca='git commit -a --verbose'
 alias gs='git status'
 alias gsv='git status --verbose'
 alias gpu='git pull upstream master && git push upstream master'
-alias gpo='git push origin'
+alias gpo='git push origin --tags && git push origin'
+alias gpa='git push origin --tags && git push origin --all'
 alias gp='git push origin'
 alias gu='git pull upstream'
 alias gb='git branch'
@@ -156,7 +171,11 @@ export PATH="/usr/texbin:$PATH"
 export PATH="$PATH:/Applications/Octave.app/Contents/Resources/usr/bin/"
 
 function search() {
-    grep -irn "$1" .
+    grep -irn --exclude-dir=node_modules "$1" .
+}
+
+function searchsensitive() {
+    grep -rn --exclude-dir=node_modules "$1" .
 }
 
 function gn() {
