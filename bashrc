@@ -13,6 +13,7 @@ alias build_inplace='python setup.py build_ext --inplace'
 alias build_clean='find . -name *.so -or -name *.pyc | xargs rm; rm -rf build'
 alias pstats='python -m pstats'
 
+
 # Change to Python's site-packages directory.
 function cdsite {
   cd "$(python -c "import site; print(site.getsitepackages()[0])")"
@@ -64,15 +65,20 @@ function npm-backport {
     npm publish
 }
 
-function py-release {
+function py-tag {
+    git pull
     local version=`python setup.py --version 2>/dev/null`
     git commit -a -m "Release $version"
     git tag v$version; true;
-    git push origin --all 
-    git push origin --tags
+    git push --all 
+    git push --tags
+}
+
+function py-release {
     rm -rf dist
     python setup.py sdist
     python setup.py bdist_wheel --universal
+    py-tag
     twine upload dist/*
 }
 
@@ -90,9 +96,9 @@ function conda-release {
 function lab-test {
     source activate lab-test
     pip uninstall -y jupyterlab
-    pip install --pre jupyterlab 
+    pip uninstall -y jupyterlab_launcher
+    rm -rf ~/anaconda/envs/lab-test/share/jupyter/lab
     cd ~/workspace
-    jupyter lab --core-mode
 }
 
 
@@ -129,8 +135,8 @@ alias gca='git commit -a --verbose'
 alias gs='git status'
 alias gsv='git status --verbose'
 alias gpu='git pull upstream master && git push upstream master'
-alias gpo='git push origin --tags && git push origin'
-alias gpa='git push origin --tags && git push origin --all'
+alias gpo='git push origin'
+alias gpa='git push origin --all'
 alias gp='git push origin'
 alias gu='git pull upstream'
 alias gb='git branch'
@@ -139,43 +145,22 @@ alias ga='git add'
 alias gc='git commit --verbose'
 alias gr='git remote -v'
 
-alias mocha-debug="pkill node; node-debug _mocha"
-alias jupyter-notebook='jupyter notebook --NotebookApp.ignore_minified_js=True'
-
-alias edison="ssh silvest@corigrid.nersc.gov"
-alias cori="ssh silvest@corigrid.nersc.gov"
-
-#eval "$(hub alias -s)"
-
-#source ~/.hub_bash_completion.sh
-
-alias hc='hg commit --verbose'
-alias hs='hg status'
-alias hsv='hg status --verbose'
-alias hpo='hg push origin'
-alias hb='hg branches'
-alias hco='hg checkout'
-alias hd='hg diff'
-alias hp='hg push'
-alias ha='hg add'
+alias jlab="jupyter lab --NotebookApp.base_url=/foo/"
 alias octave='octave-cli'
 
-source ~/hg_bash_completion
-
-export SPYDER_DEBUG=True
 export PED_EDITOR=subl
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
-export PATH="$HOME/anaconda/bin:$PATH"
+export PATH="$HOME/.config/yarn/global:$PATH"
 export PATH="/usr/texbin:$PATH"
 export PATH="$PATH:/Applications/Octave.app/Contents/Resources/usr/bin/"
 
 function search() {
-    grep -irn --exclude-dir=node_modules "$1" .
+    grep -irn --exclude-dir=node_modules --exclude="*.js.map" "$1" .
 }
 
 function searchsensitive() {
-    grep -rn --exclude-dir=node_modules "$1" .
+    grep -rn --exclude-dir=node_modules --exclude="*.js.map" "$1" .
 }
 
 function gn() {
@@ -216,27 +201,32 @@ function gdel() {
     done
 }
 
+function gclone() {
+    git clone https://github.com/blink1073/$2
+    cd $2
+    git remote add upstream https://github.com/$1/$2
+}
+
 
 # build up PS1 with source control annotation
 function source_control {
-  echo `/usr/bin/python  -c """
-import re
-import sys
-import subprocess as sp
-output=''
-try:
-    git_text = sp.check_output(['git', 'status', '-b',
-        '-s'], stderr=sp.STDOUT).decode('utf-8', 'replace')
-except (sp.CalledProcessError, OSError):
-    pass
-else:
-    match = re.match('## (.*)', git_text)
-    if match:
-        match = match.groups()[0]
-        if '...' in match:
-            match, _, _ = match.partition('...')
-        output = '(%s) %s' % (match, len(git_text.splitlines()) - 1)
-print(output)"""`
+  local git_status="$(git status 2> /dev/null)"
+  local on_branch="On branch ([^${IFS}]*)"
+  local on_commit="HEAD detached at ([^${IFS}]*)"
+  local on_rebase="interactive rebase in progress;*"
+  local lines="$(git status -s 2> /dev/null | wc -l | tr -d '[:space:]')"
+
+  if [[ $git_status =~ $on_branch ]]; then
+    local branch=${BASH_REMATCH[1]}
+    echo "($branch) $lines"
+  elif [[ $git_status =~ $on_commit ]]; then
+    local commit=${BASH_REMATCH[1]}
+    echo "($commit) $lines"
+  elif [[ $git_status =~ $on_rebase ]]; then
+    echo "(* rebasing *)"
+  elif [[ $git_status ]]; then
+    echo "(*unknown state*)"
+  fi
 }
 
 RED='\[\033[0;31m\]'
@@ -248,5 +238,6 @@ NO_COLOR='\[\033[0m\]'
 export PS1=$GREEN'\u: '$BLUE'\w'$YELLOW' `source_control`\n'$NO_COLOR'$ '
 export PROMPT_COMMAND='echo'
 
-# added by travis gem
-[ -f /Users/ssilvester/.travis/travis.sh ] && source /Users/ssilvester/.travis/travis.sh
+if [ -n "$CONDA_DEFAULT_ENV" ]; then
+    source activate $CONDA_DEFAULT_ENV
+fi

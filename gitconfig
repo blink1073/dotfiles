@@ -1,10 +1,10 @@
 [user]
-	email = steven.silvester@ieee.org
-	name = Steven Silvester
+    email = steven.silvester@ieee.org
+    name = Steven Silvester
 [github]
     user = blink1073
 [push]
-	default = matching
+    default = current
 [color]
     diff = auto
     status = auto
@@ -12,7 +12,7 @@
     ui = auto
 [core]
     excludesfile = ~/.gitignore
-    editor = nano
+    editor = vim
     pager = less -r
 [gui]
     fontui = -family Inconsolata -size 12 -weight normal -slant roman -underline 0 -overstrike 0
@@ -26,10 +26,8 @@
     sdiff = diff --staged
     wdiff = diff --word-diff
     prlog = log --grep 'Merge pull request'
-	qlog = log --pretty=oneline --abbrev-commit --graph --decorate
+    qlog = log --pretty=oneline --abbrev-commit --graph --decorate
 [credential]
-	helper = cache --timeout=3600
-[hub]
-	protocol = https
-[http]
-	sslverify = false
+    helper = osxkeychain
+[url "https://"]
+    insteadOf = git://
