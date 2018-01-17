@@ -21,7 +21,7 @@ function cdsite {
 
 # Change to the directory for a given python module
 function cdpy {
-  cd "$(python -c "import imp, os; print(imp.find_module('$1')[1])")" 2>/dev/null || cd "$(python -c "import imp, os; print(os.path.dirname(imp.find_module('$1')[1]))")" 
+  cd "$(python -c "import imp, os; print(imp.find_module('$1')[1])")" 2>/dev/null || cd "$(python -c "import imp, os; print(os.path.dirname(imp.find_module('$1')[1]))")"
 }
 
 function edit {
@@ -32,7 +32,7 @@ function npm-patch {
     git checkout master && git pull
     npm update
     npm version patch
-    git push origin master && git push origin --tags 
+    git push origin master && git push origin --tags
     npm publish
 }
 
@@ -40,7 +40,7 @@ function npm-minor {
     git checkout master && git pull
     npm update
     npm version minor
-    git push origin master && git push origin --tags 
+    git push origin master && git push origin --tags
     npm publish
 }
 
@@ -48,7 +48,7 @@ function npm-preminor {
     git checkout master && git pull
     npm update
     npm version preminor
-    git push origin master && git push origin --tags 
+    git push origin master && git push origin --tags
     npm publish --tag next
 }
 
@@ -70,7 +70,7 @@ function py-tag {
     local version=`python setup.py --version 2>/dev/null`
     git commit -a -m "Release $version"
     git tag v$version; true;
-    git push --all 
+    git push --all
     git push --tags
 }
 
@@ -187,7 +187,7 @@ function gprune() {
     # remove PR branches
     git branch | grep pr\/ | xargs -n 1 git branch -D
     # remove local merged branches
-    git branch --merged upstream/master | sed 's/\*/ /' | grep -v master | xargs -n 1 git branch -d 
+    git branch --merged upstream/master | sed 's/\*/ /' | grep -v master | xargs -n 1 git branch -d
     # remove remote merged branches
     git branch -r --merged upstream/master | grep 'origin/' | grep -v master | grep -v gh-pages | sed 's/origin\///' | xargs -n 1 git push --delete origin
 }
@@ -205,6 +205,8 @@ function gclone() {
     git clone https://github.com/blink1073/$2
     cd $2
     git remote add upstream https://github.com/$1/$2
+    git pull upstream master
+    git push origin -f
 }
 
 
