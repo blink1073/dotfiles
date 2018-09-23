@@ -1,5 +1,11 @@
 [
-    { "key": "ctrl+f",                "command": "actions.find" },   
-    { "key": "ctrl+shift+a",                "command": "editor.action.selectAll",
-        "when": "textInputFocus" },
+    {
+        "key": "ctrl+f",
+        "command": "actions.find"
+    },
+    {
+        "key": "ctrl+shift+a",
+        "command": "editor.action.selectAll",
+        "when": "textInputFocus"
+    },
 ]
