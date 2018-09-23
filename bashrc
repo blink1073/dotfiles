@@ -31,6 +31,7 @@ function edit {
 function npm-patch {
     git checkout master && git pull
     npm update
+    npm run build
     npm version patch
     git push origin master && git push origin --tags
     npm publish
@@ -39,6 +40,7 @@ function npm-patch {
 function npm-minor {
     git checkout master && git pull
     npm update
+    npm run build
     npm version minor
     git push origin master && git push origin --tags
     npm publish
@@ -47,6 +49,7 @@ function npm-minor {
 function npm-preminor {
     git checkout master && git pull
     npm update
+    npm run build
     npm version preminor
     git push origin master && git push origin --tags
     npm publish --tag next
@@ -60,6 +63,7 @@ function npm-backport {
     git checkout $1
     git pull origin $1
     npm update
+    npm run build
     npm version patch
     git push origin $1 && git push origin --tags
     npm publish
@@ -75,10 +79,15 @@ function py-tag {
 }
 
 function py-release {
-    rm -rf dist
+    rm -rf dist build
     python setup.py sdist
-    python setup.py bdist_wheel --universal
+    if [ ! -f ./setup.cfg ]; then
+        python setup.py bdist_wheel --universal;
+    else
+        python setup.py bdist_wheel;
+    fi
     py-tag
+    python setup.py register
     twine upload dist/*
 }
 
@@ -98,7 +107,23 @@ function lab-test {
     pip uninstall -y jupyterlab
     pip uninstall -y jupyterlab_launcher
     rm -rf ~/anaconda/envs/lab-test/share/jupyter/lab
+    rm -rf ~/Library/Caches/pip/
     cd ~/workspace
+}
+
+
+function gra {
+    if [ "$#" -ne 1 ]; then
+        echo "Specify user"
+    fi
+    local name=$1
+    if [ "$#" -e 2 ]; then
+        name=$2
+    fi
+    local origin=$(git remote get-url origin)
+    local repo=$(basename $origin .git)
+    git remote add $name https://github.com/$1/$repo
+    git fetch $name
 }
 
 
@@ -124,6 +149,7 @@ alias oct="cd ~/workspace/oct2py"
 alias imio="cd ~/workspace/imageio"
 alias jjs="cd ~/workspace/jupyter/services"
 alias jp='cd ~/workspace/jupyter'
+alias jpa='cd ~/workspace/jupyter/admin/jupyterlab'
 alias jsnb='cd ~/workspace/jupyter/js-notebook';
 alias jsui='cd ~/workspace/jupyter/ui';
 alias jsp='cd ~/workspace/jupyter/plugins';
@@ -147,6 +173,7 @@ alias gr='git remote -v'
 
 alias jlab="jupyter lab --NotebookApp.base_url=/foo/"
 alias octave='octave-cli'
+alias subl=code
 
 export PED_EDITOR=subl
 export TMPDIR='/tmp'
@@ -156,11 +183,11 @@ export PATH="/usr/texbin:$PATH"
 export PATH="$PATH:/Applications/Octave.app/Contents/Resources/usr/bin/"
 
 function search() {
-    grep -irn --exclude-dir=node_modules --exclude="*.js.map" "$1" .
+    grep -irn --exclude-dir=node_modules --exclude-dir=.git --exclude="*.js.map" "$1" .
 }
 
 function searchsensitive() {
-    grep -rn --exclude-dir=node_modules --exclude="*.js.map" "$1" .
+    grep -rn --exclude-dir=node_modules --exclude-dir=.git --exclude="*.js.map" "$1" .
 }
 
 function gn() {
@@ -205,6 +232,16 @@ function gclone() {
     git clone https://github.com/blink1073/$2
     cd $2
     git remote add upstream https://github.com/$1/$2
+    git pull upstream master
+    git push origin -f
+}
+
+
+function gclonea() {
+    git clone https://github.com/blink1073/$2
+    cd $2
+    git remote add upstream https://github.com/$1/$2
+    git remote set-url origin https://github.com/$1/$2
     git pull upstream master
     git push origin -f
 }
