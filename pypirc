@@ -1,0 +1,8 @@
+[distutils]
+index-servers =
+    pypi
+
+[pypi]
+http://www.python.org/pypi
+username: blink1073
+password:
