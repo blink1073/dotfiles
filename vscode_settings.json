@@ -1,0 +1,12 @@
+{
+    "editor.renderWhitespace": "boundary",
+    "files.insertFinalNewline": true,
+    "editor.find.seedSearchStringFromSelection": true,
+    "editor.scrollBeyondLastLine": false,
+    "editor.tabSize": 4,
+    "files.trimTrailingWhitespace": true,
+    "editor.wordWrap": "on",
+    "editor.formatOnPaste": true,
+    "editor.multiCursorModifier": "ctrlCmd",
+    "editor.snippetSuggestions": "top"
+}
