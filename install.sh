@@ -14,6 +14,6 @@ code="$HOME/AppData/Roaming/Code/User"
 cp keybindings.json $code
 cp vscode_settings.json $code/settings.json
 
-conda install -y ipython
+conda install -y -c conda-forge  jupyter nodejs
 ipython profile create
 cp ipython_startup.py ~/.ipython/profile_default/startup/
