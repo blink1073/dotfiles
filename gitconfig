@@ -27,7 +27,5 @@
     wdiff = diff --word-diff
     prlog = log --grep 'Merge pull request'
     qlog = log --pretty=oneline --abbrev-commit --graph --decorate
-[credential]
-    helper = osxkeychain
 [url "https://"]
     insteadOf = git://
