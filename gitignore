@@ -1,4 +1,3 @@
-# Python related
 *.prof
 *.pyo
 *.pyc
@@ -6,3 +5,9 @@
 *.o
 .coverage
 __enamlcache__
+.DS_Store
+.ipynb_checkpoints/
+.DS_Store
+*.pyc
+*.egg-info/
+.cache
