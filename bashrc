@@ -139,23 +139,11 @@ alias ...='cd ../..'
 alias nano="nano -c"
 alias mpl="cd ~/workspace/matplotlib/lib/matplotlib"
 alias sk="cd ~/workspace/scikit-image/skimage"
-alias met="cd ~/workspace/metabolite-atlas/metatlas"
-alias spy="cd ~/workspace/spyder-ide"
-alias spyi="cd ~/workspace/spyder-ide/spyderlib/utils/introspection"
 alias ph="cd ~/workspace/phosphor"
 alias ws="cd ~/workspace"
-alias kbase="source activate kbase; kbase-narrative"
-alias oct="cd ~/workspace/oct2py"
-alias imio="cd ~/workspace/imageio"
-alias jjs="cd ~/workspace/jupyter/services"
 alias jp='cd ~/workspace/jupyter'
 alias jpa='cd ~/workspace/jupyter/admin/jupyterlab'
-alias jsnb='cd ~/workspace/jupyter/js-notebook';
-alias jsui='cd ~/workspace/jupyter/ui';
-alias jsp='cd ~/workspace/jupyter/plugins';
-alias jnb='cd ~/workspace/jupyter/notebook';
 alias lab='cd ~/workspace/jupyter/lab';
-alias srv='cd ~/workspace/jupyter/services';
 
 alias gca='git commit -a --verbose'
 alias gs='git status'
@@ -280,3 +268,5 @@ export PROMPT_COMMAND='echo'
 if [ -n "$CONDA_DEFAULT_ENV" ]; then
     source activate $CONDA_DEFAULT_ENV
 fi
+
+source $HOME/Miniconda3/Scripts/activate base
