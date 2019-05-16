@@ -4,8 +4,6 @@ cp bashrc ~/.bashrc
 cp gitignore ~/.gitignore
 cp gitconfig ~/.gitconfig
 cp inputrc ~/.inputrc
-cp pythonrc ~/.pythonrc
-cp pythonrc.py ~/.pythonrc.py
 cp pdbrc ~/.pdbrc
 cp pypirc ~/.pypirc
 mkdir -p ~/.config/matplotlib
@@ -18,6 +16,6 @@ cp keybindings.json $code
 cp vscode_settings.json $code/settings.json
 
 source ~/.bashrc
-conda install -y -c conda-forge jupyter nodejs matplotlib
+conda install -y -c conda-forge jupyter nodejs matplotlib pytest twine
 ipython profile create
 cp ipython_startup.py ~/.ipython/profile_default/startup/
