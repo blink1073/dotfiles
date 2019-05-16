@@ -6,8 +6,6 @@ cp gitconfig ~/.gitconfig
 cp inputrc ~/.inputrc
 cp pdbrc ~/.pdbrc
 cp pypirc ~/.pypirc
-mkdir -p ~/.config/matplotlib
-cp matplotlibrc ~/.config/matplotlib
 
 mkdir -p $HOME/workspace/jupyter
 
@@ -16,6 +14,6 @@ cp keybindings.json $code
 cp vscode_settings.json $code/settings.json
 
 source ~/.bashrc
-conda install -y -c conda-forge jupyter nodejs matplotlib pytest twine
+conda install -y -c conda-forge jupyter nodejs pytest twine
 ipython profile create
 cp ipython_startup.py ~/.ipython/profile_default/startup/
