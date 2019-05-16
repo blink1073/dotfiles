@@ -226,10 +226,9 @@ function gclone() {
 
 
 function gclonea() {
-    git clone https://github.com/blink1073/$2
+    git clone https://github.com/$1/$2
     cd $2
     git remote add upstream https://github.com/$1/$2
-    git remote set-url origin https://github.com/$1/$2
     git pull upstream master
     git push origin -f
 }
