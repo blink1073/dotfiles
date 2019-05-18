@@ -1,4 +1,5 @@
-set -x
+set -ex
+
 cp bash_profile ~/.bash_profile
 cp bashrc ~/.bashrc
 cp gitignore ~/.gitignore
@@ -9,14 +10,8 @@ cp pypirc ~/.pypirc
 
 mkdir -p $HOME/workspace/jupyter
 
-unameOut="$(uname -s)"
 if [[ -x  "$(command -v conda)" ]]; then
-   if [[ "${unameOut}" == MINGW* ]];then
-        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.sh -O /tmp/miniconda.sh
-   else
-	wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
-   fi
-   bash /tmp/miniconda.sh -b -p $HOME/miniconda
+   bash ./install_conda.sh
 fi
 
 if [[ "${unameOut}" == MINGW* ]]; then
