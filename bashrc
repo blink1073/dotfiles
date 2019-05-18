@@ -103,6 +103,7 @@ function conda-release {
 }
 
 function lab-test {
+    conda create -n lab-test python || true
     source activate lab-test
     pip uninstall -y jupyterlab
     pip uninstall -y jupyterlab_launcher
