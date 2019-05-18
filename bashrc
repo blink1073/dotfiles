@@ -265,8 +265,9 @@ NO_COLOR='\[\033[0m\]'
 export PS1=$GREEN'\u: '$BLUE'\w'$YELLOW' `source_control`\n'$NO_COLOR'$ '
 export PROMPT_COMMAND='echo'
 
-if [ -n "$CONDA_DEFAULT_ENV" ]; then
-    source activate $CONDA_DEFAULT_ENV
+unameOut="$(uname -s)"
+if [[ "${unameOut}" == MINGW* ]];then
+    source $HOME/miniconda/Scripts/activate base
+else
+   source $HOME/miniconda/bin/activate base
 fi
-
-source $HOME/Miniconda3/Scripts/activate base
