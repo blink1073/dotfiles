@@ -106,7 +106,7 @@ function lab-test {
     conda create -n lab-test python || true
     source activate lab-test
     pip uninstall -y jupyterlab
-    pip uninstall -y jupyterlab_launcher
+    pip uninstall -y jupyterlab_server
     rm -rf ~/anaconda/envs/lab-test/share/jupyter/lab
     rm -rf ~/Library/Caches/pip/
     cd ~/workspace
