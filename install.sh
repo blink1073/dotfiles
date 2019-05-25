@@ -10,10 +10,6 @@ cp pypirc ~/.pypirc
 
 mkdir -p $HOME/workspace/jupyter
 
-if [[ -x  "$(command -v conda)" ]]; then
-   bash ./install_conda.sh
-fi
-
 if [[ "${unameOut}" == MINGW* ]]; then
   code="$HOME/AppData/Roaming/Code/User"
   cp keybindings.json $code

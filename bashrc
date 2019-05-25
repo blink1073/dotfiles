@@ -12,7 +12,7 @@ shopt -s checkwinsize
 alias build_inplace='python setup.py build_ext --inplace'
 alias build_clean='find . -name *.so -or -name *.pyc | xargs rm; rm -rf build'
 alias pstats='python -m pstats'
-
+alias yarn=jlpm
 
 # Change to Python's site-packages directory.
 function cdsite {
