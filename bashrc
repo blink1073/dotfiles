@@ -14,6 +14,12 @@ alias build_clean='find . -name *.so -or -name *.pyc | xargs rm; rm -rf build'
 alias pstats='python -m pstats'
 alias yarn=jlpm
 
+
+# Enable bash completion
+if [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+fi
+
 # Change to Python's site-packages directory.
 function cdsite {
   cd "$(python -c "import site; print(site.getsitepackages()[0])")"
@@ -87,8 +93,7 @@ function py-release {
         python setup.py bdist_wheel;
     fi
     py-tag
-    python setup.py register
-    twine upload dist/*
+    twine check dist/* && twine upload dist/*
 }
 
 function conda-release {
@@ -159,6 +164,7 @@ alias gd='git diff'
 alias ga='git add'
 alias gc='git commit --verbose'
 alias gr='git remote -v'
+alias gplre='git pull --rebase'
 
 alias jlab="jupyter lab --NotebookApp.base_url=/foo/"
 alias octave='octave-cli'
@@ -257,10 +263,10 @@ function source_control {
 }
 
 RED='\[\033[0;31m\]'
-GREEN='\[\033[00;32m\]'
+GREEN='\[\033[01;32m\]'
 YELLOW='\[\033[00;33m\]'
-BLUE='\[\033[00;34m\]'
-NO_COLOR='\[\033[0m\]'
+BLUE='\[\033[01;34m\]'
+NO_COLOR='\[\033[00m\]'
 
 export PS1=$GREEN'\u: '$BLUE'\w'$YELLOW' `source_control`\n'$NO_COLOR'$ '
 export PROMPT_COMMAND='echo'
