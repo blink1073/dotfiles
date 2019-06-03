@@ -273,6 +273,7 @@ export PROMPT_COMMAND='echo'
 
 unameOut="$(uname -s)"
 if [[ "${unameOut}" == MINGW* ]];then
+    alias ipython="winpty ipython"
     source $HOME/miniconda/Scripts/activate base
 else
    source $HOME/miniconda/bin/activate base
