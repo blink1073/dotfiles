@@ -8,6 +8,7 @@ cp inputrc ~/.inputrc
 cp pdbrc ~/.pdbrc
 cp pypirc ~/.pypirc
 cp condarc ~/.condarc
+cp jupyterhub_config.py ~/workspace
 
 mkdir -p $HOME/workspace/jupyter
 
