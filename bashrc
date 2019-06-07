@@ -212,7 +212,7 @@ function gprune() {
     # remove local merged branches
     git branch --merged upstream/master | sed 's/\*/ /' | grep -v master | xargs -n 1 git branch -d
     # remove remote merged branches
-    git branch -r --merged upstream/master | grep 'origin/' | grep -v master | grep -v gh-pages | sed 's/origin\///' | xargs -n 1 git push --delete origin
+    git branch -r --merged upstream/master | grep 'origin/' | grep -v master | grep -v gh-pages | sed 's/origin\///' | xargs -n 1 git push --delete origin --no-verify
 }
 
 function gdel() {
@@ -220,7 +220,7 @@ function gdel() {
     for var in "$@"
     do
         git branch -D "$var"
-        git push origin ":$var"
+        git push origin ":$var" --no-verify
     done
 }
 
@@ -274,6 +274,7 @@ export PROMPT_COMMAND='echo'
 
 unameOut="$(uname -s)"
 if [[ "${unameOut}" == MINGW* ]];then
+    alias ipython="winpty ipython"
     source $HOME/miniconda/Scripts/activate base
 else
    source $HOME/miniconda/bin/activate base
