@@ -7,6 +7,7 @@ cp gitconfig ~/.gitconfig
 cp inputrc ~/.inputrc
 cp pdbrc ~/.pdbrc
 cp pypirc ~/.pypirc
+cp condarc ~/.condarc
 
 mkdir -p $HOME/workspace/jupyter
 

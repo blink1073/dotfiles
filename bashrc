@@ -150,6 +150,7 @@ alias ws="cd ~/workspace"
 alias jp='cd ~/workspace/jupyter'
 alias jpa='cd ~/workspace/jupyter/admin/jupyterlab'
 alias lab='cd ~/workspace/jupyter/lab';
+alias dot='cd ~/workspace/dotfiles'
 
 alias gca='git commit -a --verbose'
 alias gs='git status'
