@@ -108,8 +108,9 @@ function conda-release {
 }
 
 function lab-test {
-    conda create -n lab-test python || true
-    source activate lab-test
+    if $(source activate lab-test); then
+        return 1
+    fi
     pip uninstall -y jupyterlab
     pip uninstall -y jupyterlab_server
     rm -rf ~/anaconda/envs/lab-test/share/jupyter/lab
