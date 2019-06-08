@@ -109,7 +109,10 @@ function conda-release {
 }
 
 function lab-test {
-    if $(conda activate lab-test); then
+    activate lab-test
+    retVal=$?
+    if [ $retVal -ne 0 ]; then
+        echo "Create the lab-test conda env"
         return 1
     fi
     pip uninstall -y jupyterlab
