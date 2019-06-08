@@ -13,7 +13,8 @@ alias build_inplace='python setup.py build_ext --inplace'
 alias build_clean='find . -name *.so -or -name *.pyc | xargs rm; rm -rf build'
 alias pstats='python -m pstats'
 alias yarn=jlpm
-
+alias activate='conda activate'
+alias deactivate='conda deactivate'
 
 # Enable bash completion
 if [ -f /etc/bash_completion ]; then
