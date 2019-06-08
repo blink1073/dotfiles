@@ -108,7 +108,7 @@ function conda-release {
 }
 
 function lab-test {
-    if $(source activate lab-test); then
+    if $(conda activate lab-test); then
         return 1
     fi
     pip uninstall -y jupyterlab
