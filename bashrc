@@ -15,6 +15,9 @@ alias pstats='python -m pstats'
 alias yarn=jlpm
 alias activate='conda activate'
 alias deactivate='conda deactivate'
+alias rcpush='cp ~/.bashrc ~/workspace/dotfiles/bashrc && dot'
+alias rcpull='cp ~/workspace/dotfiles/bashrc ~/.bashrc && source ~/.bashrc'
+
 
 # Enable bash completion
 if [ -f /etc/bash_completion ]; then
@@ -28,52 +31,11 @@ function cdsite {
 
 # Change to the directory for a given python module
 function cdpy {
-  cd "$(python -c "import imp, os; print(imp.find_module('$1')[1])")" 2>/dev/null || cd "$(python -c "import imp, os; print(os.path.dirname(imp.find_module('$1')[1]))")"
+  cd "$(python -c "from importlib.util import find_spec; import os; print(find_spec('$1').submodule_search_locations[0])")" 2>/dev/null || cd "$(python -c "import imp, os; print(os.path.dirname(imp.find_module('$1')[1]))")"
 }
 
 function edit {
-   subl $@ || gedit $@ &
-}
-
-function npm-patch {
-    git checkout master && git pull
-    npm update
-    npm run build
-    npm version patch
-    git push origin master && git push origin --tags
-    npm publish
-}
-
-function npm-minor {
-    git checkout master && git pull
-    npm update
-    npm run build
-    npm version minor
-    git push origin master && git push origin --tags
-    npm publish
-}
-
-function npm-preminor {
-    git checkout master && git pull
-    npm update
-    npm run build
-    npm version preminor
-    git push origin master && git push origin --tags
-    npm publish --tag next
-}
-
-function npm-backport {
-    # Check out the backport branch itself and git pull origin branch
-    if [ "$#" -ne 1 ]; then
-        echo "Specify the backport branch"
-    fi
-    git checkout $1
-    git pull origin $1
-    npm update
-    npm run build
-    npm version patch
-    git push origin $1 && git push origin --tags
-    npm publish
+   code $@ || gedit $@ &
 }
 
 function py-tag {
@@ -97,16 +59,6 @@ function py-release {
     twine check dist/* && twine upload dist/*
 }
 
-function conda-release {
-    shasum -a 256 dist/*.tar.gz | awk '{printf $1;}' | pbcopy
-    local name=`python setup.py --name 2>/dev/null`
-    local version=`python setup.py --version 2>/dev/null`
-    open https://github.com/conda-forge/$name-feedstock
-    cd ~/workspace/$name-feedstock
-    git fetch upstream master
-    git checkout -b "release-$version" upstream/master
-    subl recipe/meta.yaml
-}
 
 function lab-test {
     activate lab-test
@@ -124,11 +76,11 @@ function lab-test {
 
 
 function gra {
-    if [ "$#" -ne 1 ]; then
+    if [[ $# -ne 1 ]]; then
         echo "Specify user"
     fi
     local name=$1
-    if [ "$#" -e 2 ]; then
+    if [[ $# -eq 2 ]]; then
         name=$2
     fi
     local origin=$(git remote get-url origin)
@@ -147,9 +99,6 @@ alias ls='ls -G'
 alias ..='cd ..'
 alias ...='cd ../..'
 
-alias nano="nano -c"
-alias mpl="cd ~/workspace/matplotlib/lib/matplotlib"
-alias sk="cd ~/workspace/scikit-image/skimage"
 alias ph="cd ~/workspace/phosphor"
 alias ws="cd ~/workspace"
 alias jp='cd ~/workspace/jupyter'
@@ -157,6 +106,8 @@ alias jpa='cd ~/workspace/jupyter/admin/jupyterlab'
 alias lab='cd ~/workspace/jupyter/lab';
 alias dot='cd ~/workspace/dotfiles'
 alias hub='jupyterhub'
+alias jlab="jupyter lab --NotebookApp.base_url=/foo/"
+alias octave='octave-cli'
 
 alias gca='git commit -a --verbose'
 alias gs='git status'
@@ -173,16 +124,9 @@ alias gc='git commit --verbose'
 alias gr='git remote -v'
 alias gplre='git pull --rebase'
 
-alias jlab="jupyter lab --NotebookApp.base_url=/foo/"
-alias octave='octave-cli'
-alias subl=code
-
-export PED_EDITOR=subl
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
-export PATH="$HOME/.config/yarn/global:$PATH"
-export PATH="/usr/texbin:$PATH"
-export PATH="$PATH:/Applications/Octave.app/Contents/Resources/usr/bin/"
+
 
 function search() {
     grep -irn --exclude-dir=node_modules --exclude-dir=.git --exclude="*.js.map" "$1" .
