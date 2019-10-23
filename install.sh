@@ -1,4 +1,5 @@
 set -ex
+mkdir -p $HOME/workspace/jupyter
 
 cp bash_profile ~/.bash_profile
 cp bashrc ~/.bashrc
@@ -9,8 +10,6 @@ cp pdbrc ~/.pdbrc
 cp pypirc ~/.pypirc
 cp condarc ~/.condarc
 cp jupyterhub_config.py ~/workspace
-
-mkdir -p $HOME/workspace/jupyter
 
 if [[ "${unameOut}" == MINGW* ]]; then
   code="$HOME/AppData/Roaming/Code/User"
