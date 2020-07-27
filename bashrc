@@ -8,20 +8,16 @@ shopt -s histappend
 # update the values of LINES and COLUMNS
 shopt -s checkwinsize
 
-# Shortcuts for common operations
-alias build_inplace='python setup.py build_ext --inplace'
-alias build_clean='find . -name *.so -or -name *.pyc | xargs rm; rm -rf build'
-alias pstats='python -m pstats'
-alias yarn=jlpm
-alias activate='conda activate'
-alias deactivate='conda deactivate'
-alias rcpush='cp ~/.bashrc ~/workspace/dotfiles/bashrc && dot'
-alias rcpull='cp ~/workspace/dotfiles/bashrc ~/.bashrc && source ~/.bashrc'
-
+alias bell='tput bel'
 
 # Enable bash completion
 if [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
+fi
+
+# Use the github token if available
+if [ -f ~/.gh_token ]; then
+   source ~/.gh_token
 fi
 
 # Change to Python's site-packages directory.
@@ -42,7 +38,7 @@ function py-tag {
     git pull
     local version=`python setup.py --version 2>/dev/null`
     git commit -a -m "Release $version"
-    git tag v$version; true;
+    git tag $version; true;
     git push --all
     git push --tags
 }
@@ -56,24 +52,26 @@ function py-release {
         python setup.py bdist_wheel;
     fi
     py-tag
+    pip install twine
     twine check dist/* && twine upload dist/*
+    bell
 }
 
-
-function lab-test {
-    activate lab-test
-    retVal=$?
-    if [ $retVal -ne 0 ]; then
-        echo "Create the lab-test conda env"
-        return 1
-    fi
-    pip uninstall -y jupyterlab
-    pip uninstall -y jupyterlab_server
-    rm -rf ~/anaconda/envs/lab-test/share/jupyter/lab
-    rm -rf ~/Library/Caches/pip/
-    cd ~/workspace
+function conda-release {
+    # Get metadata - copy sha to clipboard
+    shasum -a 256 dist/*.tar.gz | awk '{printf $1;}' | pbcopy
+    local name=`python setup.py --name 2>/dev/null`
+    local version=`python setup.py --version 2>/dev/null`
+    local branch=`git rev-parse --abbrev-ref HEAD`
+    # Open the feedstock in the browser
+    open https://github.com/conda-forge/$name-feedstock
+    # Create a branch
+    cd ~/workspace/jupyter/$name-feedstock
+    git fetch upstream $branch
+    git checkout -b "release-$version" upstream/$branch
+    # Open the recipe for editing
+    code recipe/meta.yaml
 }
-
 
 function gra {
     if [[ $# -ne 1 ]]; then
@@ -85,8 +83,34 @@ function gra {
     fi
     local origin=$(git remote get-url origin)
     local repo=$(basename $origin .git)
-    git remote add $name https://github.com/$1/$repo
+    git remote add $name git@github.com:$1/$repo
     git fetch $name
+    bell
+}
+
+function jl1 {
+    conda activate jlab-1.2.x
+    cd ~/workspace/jupyter/jlab-1.2.x
+}
+
+
+function jl2 {
+    conda activate jlab-2.x
+    cd ~/workspace/jupyter/jlab-2.x
+}
+
+
+function jlm {
+    conda activate jlab-master
+    cd ~/workspace/jupyter/jlab-master
+}
+
+function jlp1 {
+    conda activate jlab-pip-1.2
+}
+
+function jlp2 {
+    conda activate jlab-pip-2.0
 }
 
 
@@ -94,20 +118,19 @@ function gra {
 alias u='cd ..;'
 alias ll='ls -lGh'
 alias la='ls -aG'
-alias ls='ls -G'
+alias ls='ls -aG'
 
 alias ..='cd ..'
 alias ...='cd ../..'
 
-alias ph="cd ~/workspace/phosphor"
-alias ws="cd ~/workspace"
-alias jp='cd ~/workspace/jupyter'
-alias jpa='cd ~/workspace/jupyter/admin/jupyterlab'
-alias lab='cd ~/workspace/jupyter/lab';
+alias ws="cd ~/workspace && ls -ltr"
+alias jp='cd ~/workspace/jupyter && ls -ltr'
+alias jpa='cd ~/workspace/jupyter/admin && ls -ltr'
+alias lab='lab-master'
 alias dot='cd ~/workspace/dotfiles'
 alias hub='jupyterhub'
-alias jlab="jupyter lab --NotebookApp.base_url=/foo/"
 alias octave='octave-cli'
+alias bel='tput bel'
 
 alias gca='git commit -a --verbose'
 alias gs='git status'
@@ -115,31 +138,33 @@ alias gsv='git status --verbose'
 alias gpu='git pull upstream master && git push upstream master'
 alias gpo='git push origin'
 alias gpa='git push origin --all'
-alias gp='git push origin'
 alias gu='git pull upstream'
-alias gb='git branch'
+alias gb="git for-each-ref --sort='-authordate:iso8601' --format=' %(authordate:relative)%09%(refname:short)' refs/heads | tac"
 alias gd='git diff'
 alias ga='git add'
 alias gc='git commit --verbose'
 alias gr='git remote -v'
-alias gplre='git pull --rebase'
+alias gprb='git pull --rebase'
 
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
 
 
 function search() {
-    grep -irn --exclude-dir=node_modules --exclude-dir=.git --exclude="*.js.map" "$1" .
+    grep -irn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map"  --exclude="*.min.js" --exclude="*.html" --exclude="*.bundle.js"   "$1" .
 }
 
 function searchsensitive() {
-    grep -rn --exclude-dir=node_modules --exclude-dir=.git --exclude="*.js.map" "$1" .
+    grep -rn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map" --exclude="*.html" --exclude="*.min.js" --exclude="*.bundle.js" "$1" .
 }
 
 function gn() {
-    git fetch upstream master
-    git checkout -b "$1" upstream/master
+    branch=${2:-master}
+    git fetch upstream ${branch}
+    git checkout -b "$1" upstream/${branch}
+    bell
 }
+
 
 function grb() {
     git fetch upstream master
@@ -151,6 +176,12 @@ function gpr() {
     git branch -D pr/$1 2>/dev/null
     git fetch upstream pull/$1/head:pr/$1
     git checkout pr/$1
+    bell
+}
+
+function gprelease() {
+    git fetch upstream prerelease
+    git checkout -b "$1" upstream/prerelease
 }
 
 function gprune() {
@@ -162,7 +193,8 @@ function gprune() {
     # remove local merged branches
     git branch --merged upstream/master | sed 's/\*/ /' | grep -v master | xargs -n 1 git branch -d
     # remove remote merged branches
-    git branch -r --merged upstream/master | grep 'origin/' | grep -v master | grep -v gh-pages | sed 's/origin\///' | xargs -n 1 git push --delete origin
+    git branch -r --merged upstream/master | grep 'origin/' | grep -v master | grep -v gh-pages | sed 's/origin\///' | xargs -n 1 git push --delete origin --no-verify
+    bell
 }
 
 function gdel() {
@@ -172,25 +204,37 @@ function gdel() {
         git branch -D "$var"
         git push origin ":$var"
     done
+    bell
 }
 
 function gclone() {
-    git clone https://github.com/blink1073/$2
+    git clone git@github.com:blink1073/$2
     cd $2
-    git remote add upstream https://github.com/$1/$2
+    git remote add upstream git@github.com:$1/$2
     git pull upstream master
     git push origin -f
+    bell
 }
 
 
 function gclonea() {
-    git clone https://github.com/$1/$2
+    git clone git@github.com:$1/$2
     cd $2
-    git remote add upstream https://github.com/$1/$2
+    git remote add upstream git@github.com:$1/$2
     git pull upstream master
     git push origin -f
+    bell
 }
 
+tmp-conda() {
+    local name="$(openssl rand -hex 12)"
+    conda create -y -p /tmp/conda_envs/${name} notebook python=3.6
+    conda activate /tmp/conda_envs/${name}
+    bell
+}
+
+
+alias ubuntu="docker run -it -e GRANT_SUDO=yes --user root jupyter/minimal-notebook bash"
 
 # build up PS1 with source control annotation
 function source_control {
@@ -222,9 +266,3 @@ NO_COLOR='\[\033[00m\]'
 export PS1=$GREEN'\u: '$BLUE'\w'$YELLOW' `source_control`\n'$NO_COLOR'$ '
 export PROMPT_COMMAND='echo'
 
-unameOut="$(uname -s)"
-if [[ "${unameOut}" == MINGW* ]];then
-    source $HOME/miniconda/Scripts/activate base
-else
-   source $HOME/miniconda/bin/activate base
-fi

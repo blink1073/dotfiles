@@ -29,3 +29,5 @@
     qlog = log --pretty=oneline --abbrev-commit --graph --decorate
 [url "https://"]
     insteadOf = git://
+[init]
+	defaultBranch = main
