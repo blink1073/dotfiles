@@ -8,8 +8,6 @@ shopt -s histappend
 # update the values of LINES and COLUMNS
 shopt -s checkwinsize
 
-alias bell='tput bel'
-
 # Enable bash completion
 if [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
@@ -19,6 +17,14 @@ fi
 if [ -f ~/.gh_token ]; then
    source ~/.gh_token
 fi
+
+
+function clean-jlab {
+    git clean -dfx
+    pip install -v -e .
+    jlpm run build
+    bell
+}
 
 # Change to Python's site-packages directory.
 function cdsite {
@@ -113,6 +119,10 @@ function jlp2 {
     conda activate jlab-pip-2.0
 }
 
+function jlp3 {
+    conda activate jlab-pip-3.0
+}
+
 
 # aliases
 alias u='cd ..;'
@@ -156,6 +166,11 @@ function search() {
 
 function searchsensitive() {
     grep -rn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map" --exclude="*.html" --exclude="*.min.js" --exclude="*.bundle.js" "$1" .
+}
+
+function bell() {
+    tput bel
+    say "I finished that long thing I did"
 }
 
 function gn() {
