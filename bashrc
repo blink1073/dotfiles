@@ -51,11 +51,17 @@ function py-tag {
 
 function py-release {
     rm -rf dist build
-    python setup.py sdist
-    if [ ! -f ./setup.cfg ]; then
-        python setup.py bdist_wheel --universal;
+    pip install twine
+    if [ -f ./pyproject.toml ]; then
+        pip install pep517
+        python -m pep517.build .
     else
-        python setup.py bdist_wheel;
+        python setup.py sdist
+        if [ ! -f ./setup.cfg ]; then
+            python setup.py bdist_wheel --universal;
+        else
+            python setup.py bdist_wheel;
+        fi
     fi
     py-tag
     pip install twine
