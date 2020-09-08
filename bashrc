@@ -21,7 +21,7 @@ fi
 
 function clean-jlab {
     git clean -dfx
-    pip install -v -e .
+    pip install -v -U -e .
     jlpm run build
     bell
 }
