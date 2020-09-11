@@ -53,8 +53,8 @@ function py-release {
     rm -rf dist build
     pip install twine
     if [ -f ./pyproject.toml ]; then
-        pip install pep517
-        python -m pep517.build .
+        pip install build
+        python -m build .
     else
         python setup.py sdist
         if [ ! -f ./setup.cfg ]; then
