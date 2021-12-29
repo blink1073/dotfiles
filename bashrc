@@ -266,7 +266,7 @@ workon() {
     else
         conda activate $env
     fi
-    cat "{\"venvPath\":\"$HOME/miniconda/envs\",\"venv\": \"$env\"}" > pyrightconfig.json
+    echo "{\"venvPath\":\"$HOME/miniconda/envs\",\"venv\": \"$env\"}" > pyrightconfig.json
 }
 alias wo=workon
 
