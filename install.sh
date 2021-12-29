@@ -3,21 +3,18 @@ mkdir -p $HOME/workspace/jupyter
 
 cp bash_profile ~/.bash_profile
 cp bashrc ~/.bashrc
+cp zshrc ~/.zshrc
+cp zprofile ~/.zprofile
 cp gitignore ~/.gitignore
 cp gitconfig ~/.gitconfig
-cp inputrc ~/.inputrc
 cp pdbrc ~/.pdbrc
 cp pypirc ~/.pypirc
 cp condarc ~/.condarc
 cp jupyterhub_config.py ~/workspace
 
-if [[ "${unameOut}" == MINGW* ]]; then
-  code="$HOME/AppData/Roaming/Code/User"
-  cp keybindings.json $code
-  cp vscode_settings.json $code/settings.json
-fi
+sublime="$HOME/Library/Application\ Support/Sublime\ Text\ 3/Packages/User"
+eval cp "*.sublime-settings" $sublime
+eval cp "*.sublime-keymap" $sublime
 
-source ~/.bashrc
-conda install -y -c conda-forge jupyter nodejs scipy matplotlib pytest twine
-ipython profile create
+mkdir -p ~/.ipython/profile_default/startup
 cp ipython_startup.py ~/.ipython/profile_default/startup/

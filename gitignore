@@ -4,10 +4,12 @@
 *.so
 *.o
 .coverage
-__enamlcache__
 .DS_Store
 .ipynb_checkpoints/
-.DS_Store
 *.pyc
 *.egg-info/
 .cache
+
+*.sublime-project
+*.sublime-workspace
+pyrightconfig.json

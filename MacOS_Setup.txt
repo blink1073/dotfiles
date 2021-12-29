@@ -1,0 +1,5 @@
+1. Install miniconda from https://github.com/conda-forge/miniforge
+2. Install Sublime
+3. Install Package Control
+4. Install LSP, EnhancedSidebar, and LSP-pyright
+5. Run install.sh
