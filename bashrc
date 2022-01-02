@@ -266,7 +266,13 @@ workon() {
     else
         conda activate $env
     fi
-    echo "{\"venvPath\":\"$HOME/miniconda/envs\",\"venv\": \"$env\"}" > pyrightconfig.json
+    if [ ! -f "pyrightconfig.json" ]; then
+        echo "{\"venvPath\":\"$HOME/miniconda/envs\",\"venv\": \"$env\"}" > pyrightconfig.json
+    fi
+    if [ ! -f "$name.sublime-project" ]; then
+        echo "{\"folders\":[{\"path\": \".\"}]}" >> "$name.sublime-project"
+    fi
+    subl "$name.sublime-project"
 }
 alias wo=workon
 
