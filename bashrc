@@ -93,7 +93,7 @@ alias cl="conda env list"
 alias ca="conda activate"
 alias cda="conda deactivate"
 alias docker="podman"
-alias code="subl"
+alias code="subl -a"
 
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
