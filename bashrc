@@ -34,7 +34,7 @@ function py-tag {
     git pull
     local version=`python setup.py --version 2>/dev/null`
     git commit -a -m "Release $version"
-    git tag $version; true;
+    git tag -a $version -m "$version"; true;
     git push --all
     git push --tags
 }
@@ -94,17 +94,23 @@ alias ca="conda activate"
 alias cda="conda deactivate"
 alias docker="podman"
 alias code="subl -a"
+alias pymongo="workon mongo-python-driver"
+alias mongoarrow="workon mongo-arrow"
+alias motor="workon motor"
+alias start420="cd ~/workspace/clusters/420_psa_tls && ./init"
+alias start440="cd ~/workspace/clusters/440_psa_tls && ./init"
+alias start520="cd ~/workspace/clusters/520_psa_tls && ./init"
 
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
 
 
 function search() {
-    grep -irn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map"  --exclude="*.min.js" --exclude="*.html" --exclude="*.bundle.js"  --exclude-dir=".*.egg-info" "$1" .
+    grep -irn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map"  --exclude="*.min.js" --exclude="*.html" --exclude="*.bundle.js"  --exclude-dir=".*.egg-info" --exclude-dir=".mypy_cache" "$1" .
 }
 
 function searchsensitive() {
-    grep -rn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map" --exclude="*.html" --exclude="*.min.js" --exclude="*.bundle.js" --exclude-dir=".*.egg-info" "$1" .
+    grep -rn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map" --exclude="*.html" --exclude="*.min.js" --exclude="*.bundle.js" --exclude-dir=".*.egg-info" --exclude-dir=".mypy_cache" "$1" .
 }
 
 function bell() {
@@ -219,6 +225,7 @@ function gupdate() {
         dirty="true"
         git stash
     fi
+    git fetch origin $target
     git checkout $target
     git pull upstream $target -X theirs
     git push origin $target --no-verify -f
@@ -257,10 +264,10 @@ tmp-conda() {
 workon() {
     local name=$1
     local env=${name}_env
-    cd ~/workspace/jupyter/$name
+    cd ~/workspace/$name
     local check_env=$(conda env list | grep $env)
     if [ -z "${check_env}" ]; then
-        conda create -y -n $env python=3.8 jupyterlab ipdb nodejs
+        conda create -y -n $env python=3.10 jupyterlab ipdb nodejs
         conda activate $env
         pip install -e ".[test]"; true
     else
@@ -272,9 +279,13 @@ workon() {
     if [ ! -f "$name.sublime-project" ]; then
         echo "{\"folders\":[{\"path\": \".\"}]}" >> "$name.sublime-project"
     fi
-    subl "$name.sublime-project"
 }
 alias wo=workon
+
+edit() {
+    local name=$(basename $(pwd))
+    subl "${name}.sublime-project"
+}
 
 
 tmp-conda-full() {
