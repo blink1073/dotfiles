@@ -11,6 +11,7 @@ __enamlcache__
 *.pyc
 *.egg-info/
 .cache
+.pytest_cache
 
 *.sublime-project
 *.sublime-workspace

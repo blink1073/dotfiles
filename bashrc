@@ -264,6 +264,11 @@ tmp-conda() {
 workon() {
     local name=$1
     local env=${name}_env
+    if [ ! -d ~/workspace/$name ];
+    then
+        echo "ERROR: \"$HOME/workspace/$name\" not found!"
+        return 1
+    fi
     cd ~/workspace/$name
     local check_env=$(conda env list | grep $env)
     if [ -z "${check_env}" ]; then
@@ -283,8 +288,18 @@ workon() {
 alias wo=workon
 
 edit() {
-    local name=$(basename $(pwd))
-    subl "${name}.sublime-project"
+    local curpath=$(pwd)
+    while [ ! -d "$curpath/.git" ]
+    do
+        curpath=$(dirname ${curpath})
+    done
+    local name=$(basename $curpath)
+    if [ -f "${curpath}/${name}.sublime-project" ];
+    then
+        subl "${curpath}/${name}.sublime-project"
+    else
+        echo "No sublime project found in ${curpath}"
+    fi
 }
 
 
