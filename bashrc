@@ -197,7 +197,7 @@ function gdeltag() {
 
 function gclone() {
     local user=$(git config  github.user)
-    git clone git@github.com:$user/$2
+    git clone git@github.com:$user/$2 || return 1
     cd $2
     git remote add upstream git@github.com:$1/$2.git
     default_branch=$(get_default_branch)
@@ -207,7 +207,7 @@ function gclone() {
 
 
 function gclonea() {
-    git clone git@github.com:$1/$2
+    git clone git@github.com:$1/$2  || return 1
     cd $2
     git remote add upstream git@github.com:$1/$2.git
     default_branch=$(get_default_branch)
@@ -255,7 +255,7 @@ function gra {
 
 tmp-conda() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.8 ipdb
+    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.10 ipdb
     conda activate /tmp/conda_envs/${name}
     bell
 }
