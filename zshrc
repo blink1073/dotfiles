@@ -5,9 +5,6 @@ export ZSH="$HOME/.oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
 
-source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
 plugins=(
     git
     brew
@@ -36,7 +33,16 @@ if [ -f ~/.current_host ]; then
 fi
 
 
-eval $(/usr/local/bin/brew shellenv)
+if [ -f /usr/local/bin/brew ];then
+    brew_prefix=/usr/local
+else
+    brew_prefix=/opt/homebrew
+fi
+
+eval $(${brew_prefix}/bin/brew shellenv)
+source ${brew_prefix}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ${brew_prefix}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
 
 source ~/.bashrc
 
