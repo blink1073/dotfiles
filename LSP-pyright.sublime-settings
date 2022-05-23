@@ -3,5 +3,6 @@
 {
     "settings": {
         "python.analysis.autoImportCompletions": false,
+        "python.analysis.autoImportCompletions": false
     }
 }
