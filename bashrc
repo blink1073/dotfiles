@@ -1,11 +1,22 @@
 
 export PYTEST_ADDOPTS='--pdbcls=IPython.terminal.debugger:Pdb'
 
+# Set the limit of open files to be a high number.
+ulimit -n 10240
 
 # Use the github token if available
 if [ -f ~/.gh_token ]; then
    source ~/.gh_token
 fi
+
+
+function prep-release {
+    repo=$1
+    target="$(openssl rand -hex 12)"
+    git clone $1 /tmp/$1-$target
+    tmp-conda
+    cd /tmp/$1-$target
+}
 
 
 function clean-jlab {
@@ -32,7 +43,8 @@ function edit {
 
 function py-tag {
     git pull
-    local version=`python setup.py --version 2>/dev/null`
+    pip install -U tbump hatchling
+    local version=$(tbump current-version || hatchling version)
     git commit -a -m "Release $version"
     git tag -a $version -m "$version"; true;
     git push --all
@@ -97,21 +109,19 @@ alias code="subl -a"
 alias pymongo="workon mongo-python-driver"
 alias mongoarrow="workon mongo-arrow"
 alias motor="workon motor"
-alias start420="cd ~/workspace/clusters/420_psa_tls && ./init"
-alias start440="cd ~/workspace/clusters/440_psa_tls && ./init"
-alias start520="cd ~/workspace/clusters/520_psa_tls && ./init"
+alias start420="ca base && cd ~/workspace/clusters/420_psa_tls && ./init"
+alias start440="ca base && cd ~/workspace/clusters/440_psa_tls && ./init"
+alias start500="ca base && cd ~/workspace/clusters/500_psa_tls && ./init"
+alias start520="ca base && cd ~/workspace/clusters/520_psa_tls && ./init"
+alias start600="ca base && cd ~/workspace/clusters/600_alpha_psa_lts && ./init"
 
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
 
 
-function search() {
-    grep -irn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map"  --exclude="*.min.js" --exclude="*.html" --exclude="*.bundle.js"  --exclude-dir=".*.egg-info" --exclude-dir=".mypy_cache" "$1" .
-}
+alias search="git --no-pager grep -i -n"
+alias searchsensitive="git --no-pager grep -n"
 
-function searchsensitive() {
-    grep -rn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=build --exclude-dir=lib --exclude-dir=__pycache__ --exclude="*.js.map" --exclude="*.html" --exclude="*.min.js" --exclude="*.bundle.js" --exclude-dir=".*.egg-info" --exclude-dir=".mypy_cache" "$1" .
-}
 
 function bell() {
     tput bel
@@ -122,13 +132,14 @@ function bell() {
 
 unalias gca 2>/dev/null
 function gca() {
-    git commit -a -m "${@: -1}"
+    # Allow for pre-commit auto-fixes.
+    git commit -a -m "${@: -1}" || git commit -a -m "${@: -1}"
 }
 
 
 function gpa() {
     # get to the last arg in case we accidently include -m
-    git commit -a -m "${@: -1}" && git push origin
+    gca $@ && git push origin
 }
 
 

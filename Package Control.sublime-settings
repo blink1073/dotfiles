@@ -5,9 +5,13 @@
 	],
 	"installed_packages":
 	[
+		"Cython+",
 		"LSP",
 		"LSP-pyright",
 		"Package Control",
+		"RestructuredText Improved",
+		"Schema Validator",
 		"SideBarEnhancements",
+		"TOML",
 	],
 }

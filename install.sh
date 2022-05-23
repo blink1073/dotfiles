@@ -12,7 +12,7 @@ cp pypirc ~/.pypirc
 cp condarc ~/.condarc
 cp jupyterhub_config.py ~/workspace
 
-sublime="$HOME/Library/Application\ Support/Sublime\ Text\ 3/Packages/User"
+sublime="$HOME/Library/Application\ Support/Sublime\ Text/Packages/User"
 eval cp "*.sublime-settings" $sublime
 eval cp "*.sublime-keymap" $sublime
 

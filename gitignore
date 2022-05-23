@@ -4,7 +4,6 @@
 *.so
 *.o
 .coverage
-__enamlcache__
 .DS_Store
 .ipynb_checkpoints/
 .DS_Store
@@ -16,3 +15,13 @@ __enamlcache__
 *.sublime-project
 *.sublime-workspace
 pyrightconfig.json
+
+node_modules
+build
+lib
+xunit-results
+
+__pycache__
+*.js.map
+*.min.js
+*.bundle.js
