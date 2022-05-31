@@ -12,10 +12,11 @@ fi
 
 function prep-release {
     repo=$1
-    target="$(openssl rand -hex 12)"
-    git clone $1 /tmp/$1-$target
+    target="/tmp/$1-$(openssl rand -hex 12)"
+    mkdir -p $target
+    git clone git@github.com:$1.git $target
     tmp-conda
-    cd /tmp/$1-$target
+    cd $target
 }
 
 
