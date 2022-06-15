@@ -4,5 +4,3 @@ index-servers =
 
 [pypi]
 http://www.python.org/pypi
-username: blink1073
-password:
