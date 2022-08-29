@@ -114,7 +114,7 @@ alias start420="ca base && cd ~/workspace/clusters/420_psa_tls && ./init"
 alias start440="ca base && cd ~/workspace/clusters/440_psa_tls && ./init"
 alias start500="ca base && cd ~/workspace/clusters/500_psa_tls && ./init"
 alias start520="ca base && cd ~/workspace/clusters/520_psa_tls && ./init"
-alias start600="ca base && cd ~/workspace/clusters/600_alpha_psa_lts && ./init"
+alias start600="ca base && cd ~/workspace/clusters/600_psa_tls && ./init"
 
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
@@ -290,12 +290,6 @@ workon() {
     else
         conda activate $env
     fi
-    if [ ! -f "pyrightconfig.json" ]; then
-        echo "{\"venvPath\":\"$HOME/miniconda/envs\",\"venv\": \"$env\"}" > pyrightconfig.json
-    fi
-    if [ ! -f "$name.sublime-project" ]; then
-        echo "{\"folders\":[{\"path\": \".\"}]}" >> "$name.sublime-project"
-    fi
 }
 alias wo=workon
 
@@ -306,11 +300,16 @@ edit() {
         curpath=$(dirname ${curpath})
     done
     local name=$(basename $curpath)
-    if [ -f "${curpath}/${name}.sublime-project" ];
-    then
-        subl "${curpath}/${name}.sublime-project"
+    if [ ! -f "pyrightconfig.json" ]; then
+        echo "{\"venvPath\":\"$HOME/miniconda/envs\",\"venv\": \"$env\"}" > pyrightconfig.json
+    fi
+    if [ ! -f "$name.sublime-project" ]; then
+        echo "{\"folders\":[{\"path\": \".\"}]}" >> "$name.sublime-project"
+    fi
+    if [[ $# -eq 1 ]]; then
+        subl $1
     else
-        echo "No sublime project found in ${curpath}"
+        subl "${curpath}/${name}.sublime-project"
     fi
 }
 

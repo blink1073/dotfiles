@@ -6,6 +6,7 @@
 	"installed_packages":
 	[
 		"Cython+",
+		"Git blame",
 		"LSP",
 		"LSP-pyright",
 		"Package Control",

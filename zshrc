@@ -43,6 +43,7 @@ eval $(${brew_prefix}/bin/brew shellenv)
 source ${brew_prefix}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ${brew_prefix}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+export PYMONGOCRYPT_LIB=$HOME/libmongocrypt-all/macos/nocrypto/lib/libmongocrypt.dylib
 
 source ~/.bashrc
 
