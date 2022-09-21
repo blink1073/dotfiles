@@ -44,23 +44,10 @@ source ${brew_prefix}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ${brew_prefix}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 export PYMONGOCRYPT_LIB=$HOME/libmongocrypt-all/macos/nocrypto/lib/libmongocrypt.dylib
+export PATH="$HOME/workspace/clusters/mongodb-macos-aarch64-enterprise-6.0.0/bin/:$PATH"
+export PYTHON=/Library/Frameworks/Python.framework/Versions/3.10/bin/python3
 
 source ~/.bashrc
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('$HOME/miniconda/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
-        . "$HOME/miniconda/etc/profile.d/conda.sh"
-    else
-        export PATH="$HOME/miniconda/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
 
 # bind the Control-P/N keys for use in EMACS mode
 bindkey -M emacs '^P' history-substring-search-up

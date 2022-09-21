@@ -1,5 +1,6 @@
 
 export PYTEST_ADDOPTS='--pdbcls=IPython.terminal.debugger:Pdb'
+export PYTHON=/Library/Frameworks/Python.framework/Versions/3.10/bin/python3
 
 # Set the limit of open files to be a high number.
 ulimit -n 10240
@@ -15,7 +16,7 @@ function prep-release {
     target="/tmp/$1-$(openssl rand -hex 12)"
     mkdir -p $target
     git clone git@github.com:$1.git $target
-    tmp-conda
+    tmp-env
     cd $target
 }
 
@@ -102,19 +103,19 @@ alias gr='git remote -v'
 alias gprb='git pull --rebase'
 alias gnvm="git reset --soft HEAD~1"
 
-alias cl="conda env list"
-alias ca="conda activate"
+alias cl="ls $HOME/.vens"
 alias cda="conda deactivate"
 alias docker="podman"
 alias code="subl -a"
 alias pymongo="workon mongo-python-driver"
 alias mongoarrow="workon mongo-arrow"
 alias motor="workon motor"
-alias start420="ca base && cd ~/workspace/clusters/420_psa_tls && ./init"
-alias start440="ca base && cd ~/workspace/clusters/440_psa_tls && ./init"
-alias start500="ca base && cd ~/workspace/clusters/500_psa_tls && ./init"
-alias start520="ca base && cd ~/workspace/clusters/520_psa_tls && ./init"
-alias start600="ca base && cd ~/workspace/clusters/600_psa_tls && ./init"
+alias start400="ea mongo && cd ~/workspace/clusters/400_psa_tls && ./init"
+alias start420="ea mongo && cd ~/workspace/clusters/420_psa_tls && ./init"
+alias start440="ea mongo && cd ~/workspace/clusters/440_psa_tls && ./init"
+alias start500="ea mongo && cd ~/workspace/clusters/500_psa_tls && ./init"
+alias start520="ea mongo && cd ~/workspace/clusters/520_psa_tls && ./init"
+alias start600="ea mongo && cd ~/workspace/clusters/600_psa_tls && ./init"
 
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
@@ -122,6 +123,11 @@ export PATH="$HOME/bin:$PATH"
 
 alias search="git --no-pager grep -i -n"
 alias searchsensitive="git --no-pager grep -n"
+
+
+function ea() {
+    source $HOME/.venvs/$1/bin/activate
+}
 
 
 function bell() {
@@ -267,28 +273,39 @@ function gra {
 
 tmp-conda() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.10 ipdb
+    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.10 ipdb pipx
     conda activate /tmp/conda_envs/${name}
+    bell
+}
+
+
+tmp-env() {
+    local name="$(openssl rand -hex 12)"
+    mkdir -p /tmp/venvs/
+    $PYTHON -m venv /tmp/venvs/$name
+    source /tmp/venvs/${name}/bin/activate
+    python -m pip install ipdb pipx
     bell
 }
 
 
 workon() {
     local name=$1
-    local env=${name}_env
-    if [ ! -d ~/workspace/$name ];
+    if [ ! -d $HOME/workspace/$name ];
     then
         echo "ERROR: \"$HOME/workspace/$name\" not found!"
         return 1
     fi
     cd ~/workspace/$name
-    local check_env=$(conda env list | grep $env)
-    if [ -z "${check_env}" ]; then
-        conda create -y -n $env python=3.10 jupyterlab ipdb nodejs
-        conda activate $env
+    mkdir -p $HOME/workspace/.venvs
+    local env=$HOME/workspace/.venvs/$name
+    if [ ! -d $env ]; then
+        $PYTHON -m venv $env
+        source $env/bin/activate
+        python -m pip install ipdb pipx
         pip install -e ".[test]"; true
     else
-        conda activate $env
+        source $env/bin/activate
     fi
 }
 alias wo=workon
@@ -300,9 +317,7 @@ edit() {
         curpath=$(dirname ${curpath})
     done
     local name=$(basename $curpath)
-    if [ ! -f "pyrightconfig.json" ]; then
-        echo "{\"venvPath\":\"$HOME/miniconda/envs\",\"venv\": \"$env\"}" > pyrightconfig.json
-    fi
+    echo "{\"venvPath\":\"$HOME/.venvs\",\"venv\": \"$name\"}" > pyrightconfig.json
     if [ ! -f "$name.sublime-project" ]; then
         echo "{\"folders\":[{\"path\": \".\"}]}" >> "$name.sublime-project"
     fi
@@ -316,7 +331,7 @@ edit() {
 
 tmp-conda-full() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} notebook python=3.8 ipdb nodejs
+    conda create -y -p /tmp/conda_envs/${name} notebook python=3.8 ipdb pipx
     conda activate /tmp/conda_envs/${name}
     bell
 }

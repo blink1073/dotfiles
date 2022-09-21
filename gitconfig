@@ -35,3 +35,5 @@
 	autoStash = true
 [pull]
 	rebase = false
+[checkout]
+    defaultRemote = origin
