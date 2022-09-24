@@ -92,7 +92,7 @@ alias gr='git remote -v'
 alias gprb='git pull --rebase'
 alias gnvm="git reset --soft HEAD~1"
 
-alias run-in-docker="docker run -it -v $(pwd):/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
+alias run-in-docker="docker run -it -v $PWD:/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
 alias el="ls $HOME/workspace/.venvs"
 alias cda="conda deactivate"
 alias code="subl -a"
