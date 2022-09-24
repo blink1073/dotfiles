@@ -45,8 +45,8 @@ function edit {
 
 function py-tag {
     git pull
-    pip install -U tbump hatchling
-    local version=$(tbump current-version || hatchling version)
+    pip install pipx
+    local version=$(pipx run hatch version || pipx run tbump current-version)
     git commit -a -m "Release $version"
     git tag -a $version -m "$version"; true;
     git push --all
@@ -55,21 +55,10 @@ function py-tag {
 
 function py-release {
     rm -rf dist build
-    pip install twine
-    if [ -f ./pyproject.toml ]; then
-        pip install build
-        python -m build .
-    else
-        python setup.py sdist
-        if [ ! -f ./setup.cfg ]; then
-            python setup.py bdist_wheel --universal;
-        else
-            python setup.py bdist_wheel;
-        fi
-    fi
+    pip install pipx
+    pipx run build .
     py-tag
-    pip install twine
-    twine check dist/* && twine upload dist/*
+    pipx run twine check dist/* && pipx run twine upload dist/*
     bell
 }
 
@@ -103,9 +92,9 @@ alias gr='git remote -v'
 alias gprb='git pull --rebase'
 alias gnvm="git reset --soft HEAD~1"
 
-alias cl="ls $HOME/.vens"
+alias run-in-docker="docker run -it -v $(pwd):/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
+alias el="ls $HOME/workspace/.venvs"
 alias cda="conda deactivate"
-alias docker="podman"
 alias code="subl -a"
 alias pymongo="workon mongo-python-driver"
 alias mongoarrow="workon mongo-arrow"
@@ -306,6 +295,12 @@ workon() {
         pip install -e ".[test]"; true
     else
         source $env/bin/activate
+        if [ -f ./.pre-commit-config.yaml ]; then
+            if [ ! -f ./.git/hooks/pre-commit ]; then
+                pip install pre-commit
+                pre-commit install
+            fi
+        fi
     fi
 }
 alias wo=workon
@@ -317,7 +312,7 @@ edit() {
         curpath=$(dirname ${curpath})
     done
     local name=$(basename $curpath)
-    echo "{\"venvPath\":\"$HOME/.venvs\",\"venv\": \"$name\"}" > pyrightconfig.json
+    echo "{\"venvPath\":\"$HOME/workspace/.venvs\",\"venv\": \"$name\"}" > pyrightconfig.json
     if [ ! -f "$name.sublime-project" ]; then
         echo "{\"folders\":[{\"path\": \".\"}]}" >> "$name.sublime-project"
     fi
