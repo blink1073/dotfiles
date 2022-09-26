@@ -269,7 +269,7 @@ tmp-conda() {
 tmp-env() {
     local name="$(openssl rand -hex 12)"
     mkdir -p /tmp/venvs/
-    virtualenv/tmp/venvs/$name
+    virtualenv /tmp/venvs/$name
     source /tmp/venvs/${name}/bin/activate
     python -m pip install ipdb
     bell
