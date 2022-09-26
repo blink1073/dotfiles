@@ -45,7 +45,6 @@ function edit {
 
 function py-tag {
     git pull
-    pip install pipx
     local version=$(pipx run hatch version || pipx run tbump current-version)
     git commit -a -m "Release $version"
     git tag -a $version -m "$version"; true;
@@ -55,7 +54,6 @@ function py-tag {
 
 function py-release {
     rm -rf dist build
-    pip install pipx
     pipx run build .
     py-tag
     pipx run twine check dist/* && pipx run twine upload dist/*
@@ -107,7 +105,7 @@ alias start520="ea mongo && cd ~/workspace/clusters/520_psa_tls && ./init"
 alias start600="ea mongo && cd ~/workspace/clusters/600_psa_tls && ./init"
 
 export TMPDIR='/tmp'
-export PATH="$HOME/bin:$PATH"
+export PATH="$HOME/bin:$HOME/Library/Python/3.10/bin:$PATH"
 
 
 alias search="git --no-pager grep -i -n"
@@ -262,7 +260,7 @@ function gra {
 
 tmp-conda() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.10 ipdb pipx
+    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.10 ipdb
     conda activate /tmp/conda_envs/${name}
     bell
 }
@@ -271,9 +269,9 @@ tmp-conda() {
 tmp-env() {
     local name="$(openssl rand -hex 12)"
     mkdir -p /tmp/venvs/
-    $PYTHON -m venv /tmp/venvs/$name
+    virtualenv/tmp/venvs/$name
     source /tmp/venvs/${name}/bin/activate
-    python -m pip install ipdb pipx
+    python -m pip install ipdb
     bell
 }
 
@@ -289,17 +287,17 @@ workon() {
     mkdir -p $HOME/workspace/.venvs
     local env=$HOME/workspace/.venvs/$name
     if [ ! -d $env ]; then
-        $PYTHON -m venv $env
+        virtualenv $env
         source $env/bin/activate
-        python -m pip install ipdb pipx
+        python -m pip install ipdb
         pip install -e ".[test]"; true
     else
         source $env/bin/activate
         if [ -f ./.pre-commit-config.yaml ]; then
             if [ ! -f ./.git/hooks/pre-commit ]; then
                 pip install pre-commit
-                pre-commit install
             fi
+            pre-commit install
         fi
     fi
 }
@@ -326,7 +324,7 @@ edit() {
 
 tmp-conda-full() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} notebook python=3.8 ipdb pipx
+    conda create -y -p /tmp/conda_envs/${name} notebook python=3.8 ipdb
     conda activate /tmp/conda_envs/${name}
     bell
 }
