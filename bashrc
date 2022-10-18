@@ -45,7 +45,6 @@ function edit {
 
 function py-tag {
     git pull
-    pip install pipx
     local version=$(pipx run hatch version || pipx run tbump current-version)
     git commit -a -m "Release $version"
     git tag -a $version -m "$version"; true;
@@ -55,7 +54,6 @@ function py-tag {
 
 function py-release {
     rm -rf dist build
-    pip install pipx
     pipx run build .
     py-tag
     pipx run twine check dist/* && pipx run twine upload dist/*
@@ -92,7 +90,7 @@ alias gr='git remote -v'
 alias gprb='git pull --rebase'
 alias gnvm="git reset --soft HEAD~1"
 
-alias run-in-docker="docker run -it -v $(pwd):/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
+alias run-in-docker="docker run -it -v $PWD:/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
 alias el="ls $HOME/workspace/.venvs"
 alias cda="conda deactivate"
 alias code="subl -a"
@@ -262,7 +260,7 @@ function gra {
 
 tmp-conda() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.10 ipdb pipx
+    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.10 ipdb
     conda activate /tmp/conda_envs/${name}
     bell
 }
@@ -273,7 +271,7 @@ tmp-env() {
     mkdir -p /tmp/venvs/
     virtualenv /tmp/venvs/$name
     source /tmp/venvs/${name}/bin/activate
-    python -m pip install ipdb pipx
+    python -m pip install ipdb
     bell
 }
 
@@ -300,7 +298,7 @@ workon() {
             if [ ! -f ./.git/hooks/pre-commit ]; then
                 pre-commit install
             fi
-
+            pre-commit install
         fi
     fi
 }
@@ -327,7 +325,7 @@ edit() {
 
 tmp-conda-full() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} notebook python=3.8 ipdb pipx
+    conda create -y -p /tmp/conda_envs/${name} notebook python=3.8 ipdb
     conda activate /tmp/conda_envs/${name}
     bell
 }
