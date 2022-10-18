@@ -33,7 +33,10 @@
 	defaultBranch = main
 [rebase]
 	autoStash = true
+[merge]
+    autoStash = true
 [pull]
+    autoStash = true
 	rebase = false
 [checkout]
     defaultRemote = origin

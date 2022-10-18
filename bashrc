@@ -107,7 +107,7 @@ alias start520="ea mongo && cd ~/workspace/clusters/520_psa_tls && ./init"
 alias start600="ea mongo && cd ~/workspace/clusters/600_psa_tls && ./init"
 
 export TMPDIR='/tmp'
-export PATH="$HOME/bin:$PATH"
+export PATH="$HOME/bin:$HOME/Library/Python/3.10/bin:$PATH"
 
 
 alias search="git --no-pager grep -i -n"
@@ -271,7 +271,7 @@ tmp-conda() {
 tmp-env() {
     local name="$(openssl rand -hex 12)"
     mkdir -p /tmp/venvs/
-    $PYTHON -m venv /tmp/venvs/$name
+    virtualenv /tmp/venvs/$name
     source /tmp/venvs/${name}/bin/activate
     python -m pip install ipdb pipx
     bell
@@ -289,17 +289,18 @@ workon() {
     mkdir -p $HOME/workspace/.venvs
     local env=$HOME/workspace/.venvs/$name
     if [ ! -d $env ]; then
-        $PYTHON -m venv $env
+        virtualenv $env
         source $env/bin/activate
-        python -m pip install ipdb pipx
+        python -m pip install ipdb
         pip install -e ".[test]"; true
     else
         source $env/bin/activate
         if [ -f ./.pre-commit-config.yaml ]; then
+            pip install pre-commit
             if [ ! -f ./.git/hooks/pre-commit ]; then
-                pip install pre-commit
                 pre-commit install
             fi
+
         fi
     fi
 }
