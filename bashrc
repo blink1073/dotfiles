@@ -45,7 +45,7 @@ function edit {
 
 function py-tag {
     git pull
-    local version=$(pipx run hatch version || pipx run tbump current-version)
+    local version=$(pipx run hatch version || pipx run tbump current-version || python setup.py --version)
     git commit -a -m "Release $version"
     git tag -a $version -m "$version"; true;
     git push --all
