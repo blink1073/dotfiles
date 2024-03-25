@@ -1,6 +1,5 @@
 
-export PYTEST_ADDOPTS='--pdbcls=IPython.terminal.debugger:Pdb'
-export PYTHON=/Library/Frameworks/Python.framework/Versions/3.10/bin/python3
+export TWINE_USERNAME=__token__
 
 # Set the limit of open files to be a high number.
 ulimit -n 10240
@@ -17,6 +16,7 @@ function prep-release {
     mkdir -p $target
     git clone git@github.com:$1.git $target
     tmp-env
+    pip install build twine
     cd $target
 }
 
@@ -45,6 +45,7 @@ function edit {
 
 function py-tag {
     git pull
+    pip install pipx
     local version=$(pipx run hatch version || pipx run tbump current-version)
     git commit -a -m "Release $version"
     git tag -a $version -m "$version"; true;
@@ -54,6 +55,7 @@ function py-tag {
 
 function py-release {
     rm -rf dist build
+    pip install pipx
     pipx run build .
     py-tag
     pipx run twine check dist/* && pipx run twine upload dist/*
@@ -90,22 +92,19 @@ alias gr='git remote -v'
 alias gprb='git pull --rebase'
 alias gnvm="git reset --soft HEAD~1"
 
-alias run-in-docker="docker run -it -v $PWD:/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
+alias run-in-docker="docker run -it -v $(pwd):/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
 alias el="ls $HOME/workspace/.venvs"
-alias cda="conda deactivate"
-alias code="subl -a"
-alias pymongo="workon mongo-python-driver"
-alias mongoarrow="workon mongo-arrow"
-alias motor="workon motor"
-alias start400="ea mongo && cd ~/workspace/clusters/400_psa_tls && ./init"
-alias start420="ea mongo && cd ~/workspace/clusters/420_psa_tls && ./init"
-alias start440="ea mongo && cd ~/workspace/clusters/440_psa_tls && ./init"
-alias start500="ea mongo && cd ~/workspace/clusters/500_psa_tls && ./init"
-alias start520="ea mongo && cd ~/workspace/clusters/520_psa_tls && ./init"
-alias start600="ea mongo && cd ~/workspace/clusters/600_psa_tls && ./init"
+
+alias py37="/Library/Frameworks/Python.Framework/Versions/3.7/bin/python3"
+alias py38="/Library/Frameworks/Python.Framework/Versions/3.8/bin/python3"
+alias py39="/Library/Frameworks/Python.Framework/Versions/3.9/bin/python3"
+alias py310="/Library/Frameworks/Python.Framework/Versions/3.10/bin/python3"
+alias py311="/Library/Frameworks/Python.Framework/Versions/3.11/bin/python3"
+alias py312="/Library/Frameworks/Python.Framework/Versions/3.12/bin/python3"
+alias tox37="/Library/Frameworks/Python.Framework/Versions/3.7/bin/tox"
 
 export TMPDIR='/tmp'
-export PATH="$HOME/bin:$HOME/Library/Python/3.10/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
 
 
 alias search="git --no-pager grep -i -n"
@@ -152,9 +151,9 @@ function gn() {
 
 unalias grb 2>/dev/null
 function grb() {
-    default_branch=$(get_default_branch)
-    git fetch upstream ${default_branch}
-    git rebase -i upstream/${default_branch}
+    branch=${1:-$(get_default_branch)}
+    git fetch upstream ${branch}
+    git rebase -i upstream/${branch}
 }
 
 function gpr() {
@@ -260,7 +259,7 @@ function gra {
 
 tmp-conda() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} ipykernel python=3.10 ipdb
+    conda create -y -p /tmp/conda_envs/${name} python=3.10 pipx
     conda activate /tmp/conda_envs/${name}
     bell
 }
@@ -269,9 +268,9 @@ tmp-conda() {
 tmp-env() {
     local name="$(openssl rand -hex 12)"
     mkdir -p /tmp/venvs/
-    virtualenv /tmp/venvs/$name
+    py311 -m venv /tmp/venvs/$name
     source /tmp/venvs/${name}/bin/activate
-    python -m pip install ipdb
+    py311 -m pip install -U pipx pip
     bell
 }
 
@@ -284,22 +283,18 @@ workon() {
         return 1
     fi
     cd ~/workspace/$name
-    mkdir -p $HOME/workspace/.venvs
-    local env=$HOME/workspace/.venvs/$name
+    mkdir -p $HOME/.venv
+    local env=$HOME/workspace/$name/.venv
     if [ ! -d $env ]; then
-        virtualenv $env
+        py311 -m venv $env
         source $env/bin/activate
-        python -m pip install ipdb
-        pip install -e ".[test]"; true
-    else
-        source $env/bin/activate
+        pip install -q -e ".[test]"; true
+        pip install -q -U tox pre-commit pip
         if [ -f ./.pre-commit-config.yaml ]; then
-            pip install pre-commit
-            if [ ! -f ./.git/hooks/pre-commit ]; then
-                pre-commit install
-            fi
             pre-commit install
         fi
+    else
+        source $env/bin/activate
     fi
 }
 alias wo=workon
@@ -310,22 +305,13 @@ edit() {
     do
         curpath=$(dirname ${curpath})
     done
-    local name=$(basename $curpath)
-    echo "{\"venvPath\":\"$HOME/workspace/.venvs\",\"venv\": \"$name\"}" > pyrightconfig.json
-    if [ ! -f "$name.sublime-project" ]; then
-        echo "{\"folders\":[{\"path\": \".\"}]}" >> "$name.sublime-project"
-    fi
-    if [[ $# -eq 1 ]]; then
-        subl $1
-    else
-        subl "${curpath}/${name}.sublime-project"
-    fi
+    code $curpath
 }
 
 
 tmp-conda-full() {
     local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} notebook python=3.8 ipdb
+    conda create -y -p /tmp/conda_envs/${name} notebook python=3.10 ipdb pipx
     conda activate /tmp/conda_envs/${name}
     bell
 }

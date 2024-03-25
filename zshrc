@@ -13,9 +13,12 @@ plugins=(
     macos
     bgnotify
     history-substring-search
+    keychain
+    gpg-agent
 )
 
 source $ZSH/oh-my-zsh.sh
+export GPG_TTY=$(tty)
 
 setopt EXTENDED_HISTORY
 setopt HIST_EXPIRE_DUPS_FIRST
@@ -43,9 +46,9 @@ eval $(${brew_prefix}/bin/brew shellenv)
 source ${brew_prefix}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ${brew_prefix}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-export PYMONGOCRYPT_LIB=$HOME/libmongocrypt-all/macos/nocrypto/lib/libmongocrypt.dylib
-export PATH="$HOME/workspace/clusters/mongodb-macos-aarch64-enterprise-6.0.0/bin/:$PATH"
-export PYTHON=/Library/Frameworks/Python.framework/Versions/3.10/bin/python3
+function evg-patch() {
+    evergreen patch -y "$@" -d "$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)"
+}
 
 source ~/.bashrc
 

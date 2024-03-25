@@ -1,6 +1,7 @@
 [user]
-    email = steven.silvester@ieee.org
+    email = steve.silvester@mongodb.com
     name = Steven Silvester
+	signingkey = B1BF5EC3A8B32F91
 [github]
     user = blink1073
 [push]
@@ -35,8 +36,11 @@
 	autoStash = true
 [merge]
     autoStash = true
+	conflictStyle = zdiff3
 [pull]
     autoStash = true
 	rebase = false
 [checkout]
     defaultRemote = origin
+[commit]
+	gpgsign = true

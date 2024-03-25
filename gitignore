@@ -18,8 +18,11 @@ pyrightconfig.json
 
 node_modules
 build
-lib
+_build
+/lib
 xunit-results
+.venv
+.tox
 
 __pycache__
 *.js.map
