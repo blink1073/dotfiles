@@ -28,3 +28,6 @@ __pycache__
 *.js.map
 *.min.js
 *.bundle.js
+
+.envrc
+.vscode

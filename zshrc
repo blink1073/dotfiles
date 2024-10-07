@@ -15,6 +15,7 @@ plugins=(
     history-substring-search
     keychain
     gpg-agent
+    direnv
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -46,8 +47,14 @@ eval $(${brew_prefix}/bin/brew shellenv)
 source ${brew_prefix}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ${brew_prefix}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+export PYMONGOCRYPT_LIB=$HOME/libmongocrypt-all/macos/nocrypto/lib/libmongocrypt.dylib
+export PATH="$HOME/workspace/clusters/mongodb-macos-aarch64-enterprise-6.0.0/bin/:$PATH"
+export AWS_PROFILE="drivers-test-secrets-role-857654397073"
+export DRIVERS_TOOLS="$HOME/workspace/drivers-evergreen-tools"
+export MDB_SPECS="$HOME/workspace/specifications"
+
 function evg-patch() {
-    evergreen patch -y "$@" -d "$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)"
+    evergreen patch -y "$@" --browse -d "$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)"
 }
 
 source ~/.bashrc
@@ -56,3 +63,17 @@ source ~/.bashrc
 bindkey -M emacs '^P' history-substring-search-up
 bindkey -M emacs '^N' history-substring-search-down
 bindkey \^U backward-kill-line
+
+
+export GOPATH=$(go env GOPATH)
+export PATH=$PATH:$(go env GOPATH)/bin
+
+export NVM_DIR="$HOME/workspace/drivers-evergreen-tools/.evergreen/github_app"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/steve.silvester/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/steve.silvester/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/steve.silvester/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/steve.silvester/Downloads/google-cloud-sdk/completion.zsh.inc'; fi

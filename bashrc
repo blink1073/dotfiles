@@ -94,14 +94,19 @@ alias gnvm="git reset --soft HEAD~1"
 
 alias run-in-docker="docker run -it -v $(pwd):/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
 alias el="ls $HOME/workspace/.venvs"
+alias pymongo="workon mongo-python-driver"
+alias mongoarrow="workon mongo-arrow"
+alias motor="workon motor"
+export DRIVERS_TOOLS=
+alias run-server="$HOME/workspace/drivers-evergreen-tools/.evergreen/docker/run-server.sh"
 
-alias py37="/Library/Frameworks/Python.Framework/Versions/3.7/bin/python3"
-alias py38="/Library/Frameworks/Python.Framework/Versions/3.8/bin/python3"
-alias py39="/Library/Frameworks/Python.Framework/Versions/3.9/bin/python3"
-alias py310="/Library/Frameworks/Python.Framework/Versions/3.10/bin/python3"
-alias py311="/Library/Frameworks/Python.Framework/Versions/3.11/bin/python3"
-alias py312="/Library/Frameworks/Python.Framework/Versions/3.12/bin/python3"
-alias tox37="/Library/Frameworks/Python.Framework/Versions/3.7/bin/tox"
+alias python3.8 'uv run --python=3.8 python3'
+alias python3.9 'uv run --python=3.9 python3'
+alias python3.10 'uv run --python=3.10 python3'
+alias python3.11 'uv run --python=3.11 python3'
+alias python3.12 'uv run --python=3.12 python3'
+alias python3.13 'uv run --python=3.13 python3'
+alias python3 python3.12
 
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
@@ -267,10 +272,10 @@ tmp-conda() {
 
 tmp-env() {
     local name="$(openssl rand -hex 12)"
-    mkdir -p /tmp/venvs/
-    py311 -m venv /tmp/venvs/$name
-    source /tmp/venvs/${name}/bin/activate
-    py311 -m pip install -U pipx pip
+    mkdir -p /tmp/venvs/$name
+    cd /tmp/venvs/$name
+    uv venv --seed --python 3.8
+    source .venv//bin/activate
     bell
 }
 
@@ -283,18 +288,10 @@ workon() {
         return 1
     fi
     cd ~/workspace/$name
-    mkdir -p $HOME/.venv
-    local env=$HOME/workspace/$name/.venv
-    if [ ! -d $env ]; then
-        py311 -m venv $env
-        source $env/bin/activate
-        pip install -q -e ".[test]"; true
-        pip install -q -U tox pre-commit pip
-        if [ -f ./.pre-commit-config.yaml ]; then
-            pre-commit install
-        fi
-    else
-        source $env/bin/activate
+    if [ ! -f .envrc ]; then
+        echo "test -d .venv || uv venv --seed --python 3.8" > .envrc
+        echo "source .venv/bin/activate" >> .envrc
+        direnv allow .
     fi
 }
 alias wo=workon
