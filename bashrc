@@ -11,13 +11,7 @@ fi
 
 
 function prep-release {
-    repo=$1
-    target="/tmp/$1-$(openssl rand -hex 12)"
-    mkdir -p $target
-    git clone git@github.com:$1.git $target
-    tmp-env
-    pip install build twine
-    cd $target
+    tmp-env --checkout $1 build twine
 }
 
 
@@ -97,8 +91,8 @@ alias el="ls $HOME/workspace/.venvs"
 alias pymongo="workon mongo-python-driver"
 alias mongoarrow="workon mongo-arrow"
 alias motor="workon motor"
-export DRIVERS_TOOLS=
-alias run-server="$HOME/workspace/drivers-evergreen-tools/.evergreen/docker/run-server.sh"
+export DRIVERS_TOOLS="$HOME/workspace/drivers-evergreen-tools"
+alias run-server="$HOME/workspace/drivers-evergreen-tools/.evergreen/orchestration/drivers-orchestration run"
 
 alias python3.8 'uv run --python=3.8 python3'
 alias python3.9 'uv run --python=3.9 python3'
@@ -111,9 +105,13 @@ alias python3 python3.12
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
 
+function search() {
+    git --no-pager grep -i -n $1 -- ':!uv.lock'
+}
 
-alias search="git --no-pager grep -i -n"
-alias searchsensitive="git --no-pager grep -n"
+function searchsensitive() {
+    git --no-pager grep -n $1 -- ':!uv.lock'
+}
 
 
 function ea() {
@@ -167,11 +165,6 @@ function gpr() {
     git fetch upstream pull/$1/head:pr/$1
     git checkout pr/$1
     bell
-}
-
-function gprelease() {
-    git fetch upstream prerelease
-    git checkout -b "$1" upstream/prerelease
 }
 
 function gprune() {
@@ -262,21 +255,82 @@ function gra {
 }
 
 
-tmp-conda() {
-    local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} python=3.10 pipx
-    conda activate /tmp/conda_envs/${name}
-    bell
+# Completion for just
+_just() {
+    local -a recipes
+    # Only provide custom completions if the command is exactly 'just'  
+    if [[ $words[1] == just && $CURRENT -eq 2 ]]; then 
+        if [[ -f justfile ]]; then
+            recipes=(${(z)$(just --summary 2>/dev/null)})
+            _describe 'recipe' recipes
+        fi
+    else  
+        # Use default completion (fall back to _default or another suitable completer)  
+        _default  
+    fi  
 }
+compdef _just just
 
+# ========================================
+# # tmp-env command for throwaway venvs
+# ========================================
 
+# Usage: tmp-env [-p 3.12] [requests]
 tmp-env() {
-    local name="$(openssl rand -hex 12)"
-    mkdir -p /tmp/venvs/$name
-    cd /tmp/venvs/$name
-    uv venv --seed --python 3.8
-    source .venv//bin/activate
-    bell
+  emulate -L zsh
+  set -u
+
+  # Parse: optional -p/--python VERSION ; then optional packages
+  # optional --checkout repo ; a repo to check out
+  local py=""
+  local checkout=""
+  local -a pkgs=()
+  while (( $# )); do
+    case "$1" in
+      -p|--python) py=$2; shift 2 ;;
+      --checkout) checkout=$2; shift 2 ;;
+      --) shift; break ;;  # stop option parsing
+      *) pkgs+=("$1"); shift ;;
+    esac
+  done
+
+  command -v uv >/dev/null || { print -ru2 "uv not found"; return 127; }
+
+  # Create a unique temp dir
+  local dir
+  dir=$(mktemp -d -t tmp-env.XXXXXXXX) || { print -ru2 "mktemp failed"; return 1; }
+
+  # Create the venv with uv
+  local -a venv_args=(--seed)
+  [[ -n $py ]] && venv_args+=(--python "$py")
+  venv_args+=("$dir")
+  uv venv --quiet "${venv_args[@]}" || { rmdir "$dir"; return 1; }
+
+  # Pre-install packages *into this venv specifically*
+  if (( ${#pkgs[@]} )); then
+    uv pip install --python "$dir/bin/python" "${pkgs[@]}"
+  fi
+
+  # Minimal ZDOTDIR so the child shell auto-activates & aliases deactivate->exit
+  local zd="$dir/_zdotdir"
+  mkdir -p "$zd" || { rm -rf "$dir"; return 1; }
+  cat > "$zd/.zshrc" <<'EOS'
+[[ -f "$HOME/.zshrc" ]] && source "$HOME/.zshrc"  # Keep user's config
+cd "$TMPVENV_DIR"
+source "./bin/activate"  # Activate the temp venv
+[[ -n $CHECKOUT_REPO ]] && git clone gh:$CHECKOUT_REPO ./checkout && cd ./checkout
+alias deactivate='exit'  # 'deactivate' ends the shell so cleanup runs
+print -P "Activated temp venv at:%f %F{cyan}$TMPVENV_DIR%f"
+print -P "Type %F{green}deactivate%f or %F{green}exit%f to deactivate and delete it."
+EOS
+
+  # Launch child interactive zsh that reads our tiny .zshrc
+  TMPVENV_DIR="$dir" ZDOTDIR="$zd" CHECKOUT_REPO="$checkout" zsh -i
+  local ec=$?
+
+  # Cleanup after child shell closes
+  [[ -d $dir ]] && rm -rf -- "$dir"
+  return $ec
 }
 
 
@@ -289,7 +343,7 @@ workon() {
     fi
     cd ~/workspace/$name
     if [ ! -f .envrc ]; then
-        echo "test -d .venv || uv venv --seed --python 3.8" > .envrc
+        echo "test -d .venv || uv venv --seed --python 3.9" > .envrc
         echo "source .venv/bin/activate" >> .envrc
         direnv allow .
     fi
@@ -303,14 +357,6 @@ edit() {
         curpath=$(dirname ${curpath})
     done
     code $curpath
-}
-
-
-tmp-conda-full() {
-    local name="$(openssl rand -hex 12)"
-    conda create -y -p /tmp/conda_envs/${name} notebook python=3.10 ipdb pipx
-    conda activate /tmp/conda_envs/${name}
-    bell
 }
 
 

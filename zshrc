@@ -1,6 +1,12 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
+DISABLE_AUTO_UPDATE="true"
+DISABLE_MAGIC_FUNCTIONS="true"
+DISABLE_COMPFIX="true"
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
+ZSH_AUTOSUGGEST_USE_ASYNC=1
+
 export ZSH="$HOME/.oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
@@ -8,7 +14,6 @@ ZSH_THEME="robbyrussell"
 plugins=(
     git
     brew
-    docker
     npm
     macos
     bgnotify
@@ -30,7 +35,6 @@ setopt HIST_FIND_NO_DUPS
 setopt HIST_SAVE_NO_DUPS
 setopt HIST_BEEP
 
-
 # Add the current host alias if available
 if [ -f ~/.current_host ]; then
    source ~/.current_host
@@ -47,9 +51,8 @@ eval $(${brew_prefix}/bin/brew shellenv)
 source ${brew_prefix}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ${brew_prefix}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-export PYMONGOCRYPT_LIB=$HOME/libmongocrypt-all/macos/nocrypto/lib/libmongocrypt.dylib
-export PATH="$HOME/workspace/clusters/mongodb-macos-aarch64-enterprise-6.0.0/bin/:$PATH"
-export AWS_PROFILE="drivers-test-secrets-role-857654397073"
+export PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH"
+export AWS_PROFILE="drivers-test"
 export DRIVERS_TOOLS="$HOME/workspace/drivers-evergreen-tools"
 export MDB_SPECS="$HOME/workspace/specifications"
 
@@ -77,3 +80,14 @@ if [ -f '/Users/steve.silvester/Downloads/google-cloud-sdk/path.zsh.inc' ]; then
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/steve.silvester/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/steve.silvester/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+# The following line enables Docker CLI completions.
+fpath=(/Users/steve.silvester/.docker/completions $fpath)
+
+# Smarter completion initialization
+autoload -Uz compinit
+if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)" ]; then
+    compinit
+else
+    compinit -C
+fi

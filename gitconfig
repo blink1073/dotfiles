@@ -1,7 +1,7 @@
 [user]
     email = steve.silvester@mongodb.com
     name = Steven Silvester
-	signingkey = B1BF5EC3A8B32F91
+	signingkey = /Users/steve.silvester/.ssh/id_ed25519_sign.pub
 [github]
     user = blink1073
 [push]
@@ -30,6 +30,8 @@
     qlog = log --pretty=oneline --abbrev-commit --graph --decorate
 [url "https://"]
     insteadOf = git://
+[url "git@github.com:"]
+    insteadOf = "gh:"
 [init]
 	defaultBranch = main
 [rebase]
@@ -44,3 +46,7 @@
     defaultRemote = origin
 [commit]
 	gpgsign = true
+[gpg]
+	format = ssh
+[credential]
+	helper = osxkeychain
