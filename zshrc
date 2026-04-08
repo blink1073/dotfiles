@@ -91,3 +91,4 @@ if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)" ]; t
 else
     compinit -C
 fi
+export PATH="/opt/homebrew/opt/ruby/bin:$PATH"

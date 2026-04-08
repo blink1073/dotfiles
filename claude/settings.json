@@ -1,0 +1,52 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(just test:*)",
+      "Bash(just benchmark:*)",
+      "Bash(just pre-commit:*)",
+      "Bash(just test:*)",
+      "Bash(just docs:*)",
+      "Bash(just cover:*)",
+      "Bash(just typing:*)",
+      "Bash(just install:*)",
+      "Bash(git branch --show-current)",
+      "Bash(git remote get-url origin)",
+      "Bash(gh run view:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh api repos/*/actions/jobs/*/logs)",
+      "Bash(gh api repos/*)",
+      "Bash(gh api /repos/*)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/stevensilvester/.claude/hooks/check_gh_pr.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 /Users/stevensilvester/.claude/hooks/check_git_add.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 /Users/stevensilvester/.claude/hooks/check_git_commit.py"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true
+  }
+}

@@ -85,6 +85,7 @@ alias gc='git commit --verbose'
 alias gr='git remote -v'
 alias gprb='git pull --rebase'
 alias gnvm="git reset --soft HEAD~1"
+alias docker="podman"
 
 alias run-in-docker="docker run -it -v $(pwd):/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
 alias el="ls $HOME/workspace/.venvs"
@@ -204,6 +205,7 @@ function gclone() {
     git remote add upstream git@github.com:$1/$2.git
     default_branch=$(get_default_branch)
     git pull upstream ${default_branch} -X theirs
+    gh repo set-default "$1/$2"
     bell
 }
 
@@ -258,16 +260,16 @@ function gra {
 # Completion for just
 _just() {
     local -a recipes
-    # Only provide custom completions if the command is exactly 'just'  
-    if [[ $words[1] == just && $CURRENT -eq 2 ]]; then 
+    # Only provide custom completions if the command is exactly 'just'
+    if [[ $words[1] == just && $CURRENT -eq 2 ]]; then
         if [[ -f justfile ]]; then
             recipes=(${(z)$(just --summary 2>/dev/null)})
             _describe 'recipe' recipes
         fi
-    else  
-        # Use default completion (fall back to _default or another suitable completer)  
-        _default  
-    fi  
+    else
+        # Use default completion (fall back to _default or another suitable completer)
+        _default
+    fi
 }
 compdef _just just
 
@@ -343,12 +345,22 @@ workon() {
     fi
     cd ~/workspace/$name
     if [ ! -f .envrc ]; then
-        echo "test -d .venv || uv venv --seed --python 3.9" > .envrc
-        echo "source .venv/bin/activate" >> .envrc
+        if [ -f uv.lock ]; then
+            echo "test -d .venv || uv venv --seed --python 3.11" > .envrc
+            echo "source .venv/bin/activate" >> .envrc
+        elif [ -f poetry.lock ]; then
+            echo "poetry env use \$(pyenv prefix 3.11)" > .envrc
+            echo "poetry install" >> .envrc
+            echo "eval $(poetry env activate)" >> .envrc
+        fi
         direnv allow .
     fi
 }
 alias wo=workon
+
+ubuntu-test() {
+    bash /Users/stevensilvester/workspace/docker-tester/run.sh
+}
 
 edit() {
     local curpath=$(pwd)
