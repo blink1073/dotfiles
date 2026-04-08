@@ -8,8 +8,8 @@ cp ~/.zprofile zprofile
 # Git
 cp ~/.gitignore gitignore
 cp ~/.gitconfig gitconfig
-git config -f gitconfig --unset user.email
-git config -f gitconfig --unset user.signingkey
+git config -f gitconfig --unset user.email || true
+git config -f gitconfig --unset user.signingkey || true
 
 # IPython
 cp ~/.ipython/profile_default/startup/ipython_startup.py .
