@@ -20,6 +20,6 @@ cp "$vscode/settings.json" vscode_settings.json
 cp "$vscode/keybindings.json" vscode_keybindings.json
 
 # Claude
-cp ~/.claude/CLAUDE.md claude/CLAUDE.md
+cp ~/.claude/CLAUDE.md claude/instructions.md
 cp ~/.claude/settings.json claude/settings.json
 cp ~/.claude/hooks/* claude/hooks/
