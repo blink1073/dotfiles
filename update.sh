@@ -1,11 +1,25 @@
+set -ex
 
+# Shell
 cp ~/.bashrc bashrc
-cp ~/.gitignore gitignore
-cp ~/.gitconfig gitconfig
 cp ~/.zshrc zshrc
 cp ~/.zprofile zprofile
+
+# Git
+cp ~/.gitignore gitignore
+cp ~/.gitconfig gitconfig
+git config -f gitconfig --unset user.email || true
+git config -f gitconfig --unset user.signingkey || true
+
+# IPython
 cp ~/.ipython/profile_default/startup/ipython_startup.py .
 
-# sublime="$HOME/Library/Application\ Support/Sublime\ Text/Packages/User"
-# eval cp "$sublime/*.sublime-settings" .
-# eval cp "$sublime/*.sublime-keymap" .
+# VSCode
+vscode="$HOME/Library/Application Support/Code/User"
+cp "$vscode/settings.json" vscode_settings.json
+cp "$vscode/keybindings.json" vscode_keybindings.json
+
+# Claude
+cp ~/.claude/CLAUDE.md claude/instructions.md
+cp ~/.claude/settings.json claude/settings.json
+cp ~/.claude/hooks/* claude/hooks/

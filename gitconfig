@@ -1,11 +1,10 @@
 [user]
-    email = steve.silvester@mongodb.com
     name = Steven Silvester
-	signingkey = /Users/steve.silvester/.ssh/id_ed25519_sign.pub
 [github]
     user = blink1073
 [push]
     default = current
+	autoSetupRemote = true
 [color]
     diff = auto
     status = auto
@@ -38,7 +37,7 @@
 	autoStash = true
 [merge]
     autoStash = true
-	conflictStyle = zdiff3
+	conflictstyle = zdiff3
 [pull]
     autoStash = true
 	rebase = false
