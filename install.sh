@@ -31,6 +31,7 @@ cp ipython_startup.py ~/.ipython/profile_default/startup/
 
 # VSCode
 vscode="$HOME/Library/Application Support/Code/User"
+mkdir -p "$vscode"
 cp vscode_settings.json "$vscode/settings.json"
 cp vscode_keybindings.json "$vscode/keybindings.json"
 
