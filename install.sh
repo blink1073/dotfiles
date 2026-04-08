@@ -6,7 +6,11 @@ cp bashrc ~/.bashrc
 cp zshrc ~/.zshrc
 cp zprofile ~/.zprofile
 cp gitignore ~/.gitignore
+git_email=$(git config --global user.email 2>/dev/null || true)
+git_signingkey=$(git config --global user.signingkey 2>/dev/null || true)
 cp gitconfig ~/.gitconfig
+[ -n "$git_email" ] && git config --global user.email "$git_email"
+[ -n "$git_signingkey" ] && git config --global user.signingkey "$git_signingkey"
 cp pdbrc ~/.pdbrc
 cp pypirc ~/.pypirc
 cp condarc ~/.condarc

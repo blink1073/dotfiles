@@ -3,6 +3,9 @@ set -ex
 cp ~/.bashrc bashrc
 cp ~/.gitignore gitignore
 cp ~/.gitconfig gitconfig
+# Remove machine-specific user fields before committing
+git config -f gitconfig --unset user.email
+git config -f gitconfig --unset user.signingkey
 cp ~/.zshrc zshrc
 cp ~/.zprofile zprofile
 cp ~/.ipython/profile_default/startup/ipython_startup.py .
