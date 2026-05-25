@@ -206,6 +206,9 @@ function gclone() {
     default_branch=$(get_default_branch)
     git pull upstream ${default_branch} -X theirs
     gh repo set-default "$1/$2"
+    if [ -f .pre-commit-config.yaml ]; then
+        uv tool run pre-commit install
+    fi
     bell
 }
 
