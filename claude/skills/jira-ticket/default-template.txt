@@ -1,0 +1,3 @@
+<!-- Fill this in with your org's JIRA ticket template, in JIRA wiki
+     markup (not markdown). The jira-ticket skill reads this file when
+     you choose "use the default template." -->

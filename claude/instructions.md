@@ -1,6 +1,5 @@
 ## Pull Requests
 - Always run `just typing` and `just pre-commit` before making a pull request
-- Check for a pull request template in the `.github` folder.  Carefully fill in the entire template
 - `gh pr create` must always include `--base main` and  `--head owner:branch` flag (e.g., `--head username:branch-name`)
 - Get the current branch with `git branch --show-current` and remote with `git remote get-url origin` if needed
 
