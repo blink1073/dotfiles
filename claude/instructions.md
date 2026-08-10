@@ -1,8 +1,3 @@
-## Pull Requests
-- Always run `just typing` and `just pre-commit` before making a pull request
-- `gh pr create` must always include `--base main` and  `--head owner:branch` flag (e.g., `--head username:branch-name`)
-- Get the current branch with `git branch --show-current` and remote with `git remote get-url origin` if needed
-
 ## GitHub Actions Security
 
 When editing GitHub Actions workflow files (`.github/workflows/*.yml`):
