@@ -21,6 +21,7 @@
       "Bash(gh pr diff:*)",
       "Bash(gh pr list:*)",
       "Bash(gh issue view:*)",
+      "Bash(gh repo view:*)",
       "Bash(gh api repos/*/actions/jobs/*/logs)",
       "Bash(gh api repos/*)",
       "Bash(gh api /repos/*)",
