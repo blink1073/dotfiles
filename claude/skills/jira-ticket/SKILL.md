@@ -1,6 +1,6 @@
 ---
 name: jira-ticket
-description: Use when drafting a JIRA ticket for a bug, feature, or task, before or while writing the ticket body.
+description: Use when drafting a JIRA ticket for a bug, task, feature, or build/CI failure, before or while writing the ticket body.
 ---
 
 # JIRA Ticket
@@ -11,16 +11,32 @@ description: Use when drafting a JIRA ticket for a bug, feature, or task, before
 ## Overview
 
 This skill supplies JIRA's template-resolution rule and JIRA-specific
-markup for the `issue` skill's workflow.
+markup for the `issue` skill's workflow. A bug, a task, and a broken
+build want different fields, so the template is chosen per ticket rather
+than fixed.
 
 ## Template resolution
 
-Ask, every time: "Use the default template, or provide a different one
-for this ticket?"
-- Default: read `default-template.txt` in this skill's directory. If
-  it's still just the placeholder comment, say so and ask for a
-  template to use for this ticket instead.
-- Different: ask for the template text (JIRA wiki markup).
+Three templates live in this skill's directory. Pick by what the ticket
+is *about*, not by who reports it:
+
+| Template | Use when |
+|---|---|
+| `task-template.txt` | New work, a change, or an improvement — nothing is broken |
+| `bug-template.txt` | Shipped behavior is wrong for a user of the product |
+| `build-failure-template.txt` | CI, the build, or the test pipeline is red — tooling, not product behavior |
+
+1. **Infer** the best match from the conversation.
+2. **State the recommendation and the signal you used** — one line, e.g.
+   "Recommending `build-failure-template`: this is a red CI job, not a
+   product defect."
+3. **Ask** the user to confirm, pick a different one of the three, or
+   supply their own template text (JIRA wiki markup) for this ticket.
+4. If the chosen file is empty or still just a placeholder comment, say
+   so and ask for template text to use for this ticket instead.
+
+The three files are starter templates — edit them in place to match your
+org's conventions.
 
 ## Markup
 
@@ -41,4 +57,6 @@ template implies separate fields. No doubled blank lines.
 |---|---|
 | Using markdown backticks (`` `foo` ``) for code names | Use `{{foo}}` |
 | Header with no blank line before it | Add the blank line |
-| Assuming the default template without asking | Always ask template choice first |
+| Silently picking a template | State the recommendation and its signal, then ask |
+| Listing the three and asking "which one?" with no recommendation | Infer first — an open question is not a recommendation |
+| Filing a red CI job under `bug-template` | `bug-template` is for product behavior; a broken pipeline is `build-failure-template` |
