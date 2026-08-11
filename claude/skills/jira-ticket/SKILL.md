@@ -18,9 +18,12 @@ than fixed.
 ## Template resolution
 
 **Check the repository first.** If the ticket's repository is
-`drivers-evergreen-tools` or `drivers-github-tools`, use
-`drivers-template.txt` and skip the content-based table below — repo
-identity overrides what the ticket is about for these two repos.
+`drivers-evergreen-tools` or `drivers-github-tools` and the ticket is
+*not* a build/CI failure, use `drivers-template.txt` and skip the
+content-based table below — repo identity overrides what the ticket is
+about for these two repos. A red CI job in either repo still gets
+`build-failure-template.txt`; the repo override does not extend to
+build failures.
 
 Otherwise, four templates live in this skill's directory. Pick by what
 the ticket is *about*, not by who reports it:
@@ -30,7 +33,7 @@ the ticket is *about*, not by who reports it:
 | `task-template.txt` | New work, a change, or an improvement — nothing is broken |
 | `bug-template.txt` | Shipped behavior is wrong for a user of the product |
 | `build-failure-template.txt` | CI, the build, or the test pipeline is red — tooling, not product behavior |
-| `drivers-template.txt` | Repo is `drivers-evergreen-tools` or `drivers-github-tools` (see above) |
+| `drivers-template.txt` | Repo is `drivers-evergreen-tools` or `drivers-github-tools`, and it's not a build/CI failure (see above) |
 
 1. **Infer** the best match from the conversation (repo check above takes
    priority over this step).
@@ -68,4 +71,5 @@ template implies separate fields. No doubled blank lines.
 | Silently picking a template | State the recommendation and its signal, then ask |
 | Listing the three and asking "which one?" with no recommendation | Infer first — an open question is not a recommendation |
 | Filing a red CI job under `bug-template` | `bug-template` is for product behavior; a broken pipeline is `build-failure-template` |
-| Inferring template from ticket content in `drivers-evergreen-tools`/`drivers-github-tools` | Repo name overrides content — use `drivers-template` |
+| Inferring template from ticket content in `drivers-evergreen-tools`/`drivers-github-tools` for a non-failure ticket | Repo name overrides content — use `drivers-template` |
+| Using `drivers-template` for a red CI job in `drivers-evergreen-tools`/`drivers-github-tools` | Build failures always use `build-failure-template`, even in these repos |

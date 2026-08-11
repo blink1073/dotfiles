@@ -5,32 +5,39 @@ description: Use when given a link to a failing Evergreen or Spruce task and a b
 
 # Evergreen Build Failure Ticket
 
-**REQUIRED SUB-SKILL:** Use `jira-ticket` to render the draft — it owns
-`build-failure-template.txt`, JIRA markup, and formatting review; this
-skill supplies data gathering and regression-vs-flake verdict.
+**REQUIRED SUB-SKILL:** Use `jira-ticket` to render the draft — the
+template is pre-resolved to `build-failure-template.txt`; it must not
+re-ask. It supplies JIRA markup and formatting review; this skill
+supplies data gathering and regression-vs-flake verdict.
 
 ## Overview
 
 Tools come from the DevProd MCP Gateway — match by name suffix
 (`evg_get_task`, `jira_search_issues`, …); prefix is install-specific.
-If unavailable, say so and stop — no fallback (Evergreen API needs SSO
-sandbox can't complete).
+If unavailable, say so and stop — no fallback (the Evergreen API needs
+interactive SSO; the sandboxed browser can't complete Okta MFA).
 
 ## Gathering
 
 1. **Task ID** — segment after `/task/`, dropping `/tests`, query
    string, and fragment; keep `execution` if set, else `0`.
 2. **Task** — `evg_get_task`, plus `evg_get_task_raw` for
-   `project_identifier`. Never guess project from task ID. If no task
-   ID, or `status` isn't a failure (`success`, `undispatched`,
-   running), say what you found and ask first.
+   `project_identifier`. Capture `display_name`, `build_variant`,
+   `status`, `status_details`, `revision`, `create_time`, and log
+   links. Never guess project from task ID. If no task ID, or `status`
+   isn't a failure (`success`, `undispatched`, running), say what you
+   found and ask first.
 3. **Failing tests** — `evg_get_test_results_summary` (failing by
    default). Read logs via `evg_get_test_results_detailed`, passing
    `logs.url_raw` verbatim with bounded `tail_limit` (~200) — never
    hand-build a path.
-4. **Duplicate check** — below, before drafting.
-5. **History** — `evg_get_task_history` (~15 runs, anchored) and
-   `evg_get_task_reliability`.
+4. **No failing tests** — derive the summary and duplicate-check term
+   from `display_name`, use `status_details` as *Name of Failure* and
+   Context evidence, and ask before drafting.
+5. **Duplicate check** — below, before drafting.
+6. **History** — `evg_get_task_history`, scoped by project +
+   `display_name` + `build_variant` (~15 runs); `evg_get_task_reliability`
+   takes a date window (default 28 days).
 
 Don't call `bb_get_bfg_by_task`; it won't return usable data here.
 
@@ -65,17 +72,19 @@ Count only runs that ran: skip `activated: false` and `unscheduled`.
 | Flake | Failures interleaved with passes. Give ratio and window. |
 | Long-standing | Failing across most of the window. |
 
-Report reliability as `num_success` of `num_total` — never quote
-`success_rate`, which disagrees with the counts.
+Report reliability as `num_success` of `num_total` — `success_rate` has
+been observed disagreeing with its own counts, so report the counts
+instead.
 
 ## Drafting
 
-Match existing conventions: summary `[BF] <bare test name>`, issue type
+State these for filing: summary `[BF] <bare test name>`, issue type
 `Build Failure`, label `greenerbuild`.
 
 Template fields: *Name of Failure* — task and failing test; *Link to
-task* — Spruce URL; *Context* — verdict and evidence (revisions,
-dates, counts); *Stack trace* — log tail in `{code}`.
+task* — Spruce URL; *Context of when and why the failure occurred* —
+verdict and evidence (revisions, dates, counts); *Stack trace* — log
+tail in `{code}`.
 
 **Stop at the draft. Never call `jira_create_issue`** — filing is the
 user's action.
