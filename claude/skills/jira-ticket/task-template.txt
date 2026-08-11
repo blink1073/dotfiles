@@ -1,0 +1,20 @@
+h2. Summary
+
+_What should change, in one or two sentences._
+
+h2. Current state
+
+_What the system does today, and why that's a problem or a gap._
+
+h2. Desired state
+
+_What it should do instead._
+
+h2. Acceptance criteria
+
+*
+*
+
+h2. Notes
+
+_Links, constraints, related tickets._

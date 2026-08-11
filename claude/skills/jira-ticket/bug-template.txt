@@ -1,0 +1,29 @@
+h2. Summary
+
+_What is broken, in one or two sentences._
+
+h2. Steps to reproduce
+
+#
+#
+
+h2. Expected result
+
+_What should happen._
+
+h2. Actual result
+
+_What happens instead._
+
+{code}
+Error message, stack trace, or output.
+{code}
+
+h2. Environment
+
+* Version:
+* Platform:
+
+h2. Impact
+
+_Who is affected, how badly, and whether there's a workaround._
