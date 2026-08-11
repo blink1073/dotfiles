@@ -85,7 +85,6 @@ alias gc='git commit --verbose'
 alias gr='git remote -v'
 alias gprb='git pull --rebase'
 alias gnvm="git reset --soft HEAD~1"
-alias docker="podman"
 
 alias run-in-docker="docker run -it -v $(pwd):/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
 alias el="ls $HOME/workspace/.venvs"
@@ -200,8 +199,9 @@ function gdeltag() {
 
 function gclone() {
     local user=$(git config  github.user)
-    git clone git@github.com:$user/$2 || return 1
-    cd $2
+    local name=$2${3:+-$3}
+    git clone git@github.com:$user/$2 $name || return 1
+    cd $name
     git remote add upstream git@github.com:$1/$2.git
     default_branch=$(get_default_branch)
     git pull upstream ${default_branch} -X theirs
@@ -209,9 +209,9 @@ function gclone() {
     if [ -f .pre-commit-config.yaml ]; then
         uv tool run pre-commit install
     fi
+    workon $name
     bell
 }
-
 
 function gclonea() {
     git clone git@github.com:$1/$2  || return 1
@@ -376,5 +376,42 @@ edit() {
 
 
 alias ubuntu="docker run -it -e GRANT_SUDO=yes --user root jupyter/minimal-notebook bash"
+
+clone-ticket() {
+    local repo=$1
+    local ticket=$2
+    if [ -z "$repo" ] || [ -z "$ticket" ]; then
+        echo "Usage: clone-ticket <repo> <ticket>"
+        return 1
+    fi
+
+    if [ "$repo" = "pymongo" ]; then
+        repo="mongo-python-driver"
+    elif [ "$repo" = "django" ]; then
+        repo="django-mongodb-backend"
+    elif [ "$repo" = "det" ]; then
+        repo="drivers-evergreen-tools"
+    fi
+
+    local org
+    if gh api "repos/mongodb-labs/$repo" --silent 2>/dev/null; then
+        org="mongodb-labs"
+    elif gh api "repos/mongodb/$repo" --silent 2>/dev/null; then
+        org="mongodb"
+    else
+        echo "Error: '$repo' not found in mongodb-labs or mongodb"
+        return 1
+    fi
+
+    local dest="$HOME/workspace/${repo}-${ticket}"
+    git clone "git@github.com:${org}/${repo}.git" "$dest" --origin upstream || return 1
+    cd "$dest" || return 1
+    git remote add origin "git@github.com:blink1073/${repo}.git"
+    echo "test -d .venv || uv venv --seed --python 3.11" > .envrc
+    direnv allow .
+    git checkout -b "$ticket"
+    uv tool run pre-commit install
+    just install || true
+}
 
 export PROMPT_COMMAND='echo'

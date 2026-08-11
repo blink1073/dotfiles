@@ -34,3 +34,6 @@ __pycache__
 .vscode
 .claude
 .idea
+.superpowers/
+**/superpowers/plans/
+**/superpowers/specs/

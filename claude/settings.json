@@ -16,17 +16,12 @@
       "Bash(git branch --show-current)",
       "Bash(git remote get-url origin)",
       "Bash(gh run view:*)",
-      "Bash(gh run watch:*)",
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
-      "Bash(gh pr list:*)",
       "Bash(gh issue view:*)",
-      "Bash(gh repo view:*)",
       "Bash(gh api repos/*/actions/jobs/*/logs)",
       "Bash(gh api repos/*)",
-      "Bash(gh api /repos/*)",
-      "Bash(cat:*)",
-      "Bash(grep:*)"
+      "Bash(gh api /repos/*)"
     ],
     "deny": []
   },
@@ -37,15 +32,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/stevensilvester/.claude/hooks/check_gh_pr.py"
+            "command": "python3 /Users/steve.silvester/.claude/hooks/check_gh_pr.py"
           },
           {
             "type": "command",
-            "command": "python3 /Users/stevensilvester/.claude/hooks/check_git_add.py"
+            "command": "python3 /Users/steve.silvester/.claude/hooks/check_git_add.py"
           },
           {
             "type": "command",
-            "command": "python3 /Users/stevensilvester/.claude/hooks/check_git_commit.py"
+            "command": "python3 /Users/steve.silvester/.claude/hooks/check_git_commit.py"
           }
         ]
       }
@@ -53,6 +48,7 @@
   },
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
     "superpowers@superpowers-dev": true
   },
   "extraKnownMarketplaces": {
