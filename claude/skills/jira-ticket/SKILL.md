@@ -17,25 +17,33 @@ than fixed.
 
 ## Template resolution
 
-Three templates live in this skill's directory. Pick by what the ticket
-is *about*, not by who reports it:
+**Check the repository first.** If the ticket's repository is
+`drivers-evergreen-tools` or `drivers-github-tools`, use
+`drivers-template.txt` and skip the content-based table below — repo
+identity overrides what the ticket is about for these two repos.
+
+Otherwise, four templates live in this skill's directory. Pick by what
+the ticket is *about*, not by who reports it:
 
 | Template | Use when |
 |---|---|
 | `task-template.txt` | New work, a change, or an improvement — nothing is broken |
 | `bug-template.txt` | Shipped behavior is wrong for a user of the product |
 | `build-failure-template.txt` | CI, the build, or the test pipeline is red — tooling, not product behavior |
+| `drivers-template.txt` | Repo is `drivers-evergreen-tools` or `drivers-github-tools` (see above) |
 
-1. **Infer** the best match from the conversation.
+1. **Infer** the best match from the conversation (repo check above takes
+   priority over this step).
 2. **State the recommendation and the signal you used** — one line, e.g.
    "Recommending `build-failure-template`: this is a red CI job, not a
-   product defect."
-3. **Ask** the user to confirm, pick a different one of the three, or
+   product defect." or "Recommending `drivers-template`: repo is
+   `drivers-github-tools`."
+3. **Ask** the user to confirm, pick a different one of the four, or
    supply their own template text (JIRA wiki markup) for this ticket.
 4. If the chosen file is empty or still just a placeholder comment, say
    so and ask for template text to use for this ticket instead.
 
-The three files are starter templates — edit them in place to match your
+The four files are starter templates — edit them in place to match your
 org's conventions.
 
 ## Markup
@@ -60,3 +68,4 @@ template implies separate fields. No doubled blank lines.
 | Silently picking a template | State the recommendation and its signal, then ask |
 | Listing the three and asking "which one?" with no recommendation | Infer first — an open question is not a recommendation |
 | Filing a red CI job under `bug-template` | `bug-template` is for product behavior; a broken pipeline is `build-failure-template` |
+| Inferring template from ticket content in `drivers-evergreen-tools`/`drivers-github-tools` | Repo name overrides content — use `drivers-template` |
