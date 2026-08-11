@@ -1,0 +1,26 @@
+h2. Summary
+
+_Which build is failing, and since when._
+
+h2. Failing job
+
+* Pipeline/workflow:
+* Job/step:
+* Branch:
+* First failing run:
+* Last passing run:
+
+h2. Error output
+
+{code}
+The relevant portion of the build log.
+{code}
+
+h2. Suspected trigger
+
+_What changed between the last passing and the first failing run — a
+dependency bump, a merged change, a runner image update — or unknown._
+
+h2. Impact
+
+_What is blocked while this is red._

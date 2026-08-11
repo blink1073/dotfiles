@@ -16,12 +16,17 @@
       "Bash(git branch --show-current)",
       "Bash(git remote get-url origin)",
       "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
+      "Bash(gh pr list:*)",
       "Bash(gh issue view:*)",
+      "Bash(gh repo view:*)",
       "Bash(gh api repos/*/actions/jobs/*/logs)",
       "Bash(gh api repos/*)",
-      "Bash(gh api /repos/*)"
+      "Bash(gh api /repos/*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   },
@@ -47,6 +52,15 @@
     ]
   },
   "enabledPlugins": {
-    "clangd-lsp@claude-plugins-official": true
+    "clangd-lsp@claude-plugins-official": true,
+    "superpowers@superpowers-dev": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-dev": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/obra/superpowers.git"
+      }
+    }
   }
 }

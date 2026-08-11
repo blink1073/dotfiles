@@ -37,6 +37,8 @@ cp vscode_keybindings.json "$vscode/keybindings.json"
 
 # Claude
 mkdir -p ~/.claude/hooks
+mkdir -p ~/.claude/skills
 cp claude/instructions.md ~/.claude/CLAUDE.md
 cp claude/settings.json ~/.claude/settings.json
 cp claude/hooks/* ~/.claude/hooks/
+cp -r claude/skills/* ~/.claude/skills/
