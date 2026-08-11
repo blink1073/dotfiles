@@ -43,6 +43,9 @@ the ticket is *about*, not by who reports it:
    `drivers-github-tools`."
 3. **Ask** the user to confirm, pick a different one of the four, or
    supply their own template text (JIRA wiki markup) for this ticket.
+   Skip this step when a calling skill states it has already resolved the
+   template — steps 1–2 are then already settled, and re-asking spends
+   the user's attention on a decision that skill made deliberately.
 4. If the chosen file is empty or still just a placeholder comment, say
    so and ask for template text to use for this ticket instead.
 
@@ -69,6 +72,7 @@ template implies separate fields. No doubled blank lines.
 | Using markdown backticks (`` `foo` ``) for code names | Use `{{foo}}` |
 | Header with no blank line before it | Add the blank line |
 | Silently picking a template | State the recommendation and its signal, then ask |
+| Asking which template when a calling skill already resolved it | Skip the ask — that decision is made |
 | Listing the three and asking "which one?" with no recommendation | Infer first — an open question is not a recommendation |
 | Filing a red CI job under `bug-template` | `bug-template` is for product behavior; a broken pipeline is `build-failure-template` |
 | Inferring template from ticket content in `drivers-evergreen-tools`/`drivers-github-tools` for a non-failure ticket | Repo name overrides content — use `drivers-template` |
