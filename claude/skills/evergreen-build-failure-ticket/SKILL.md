@@ -48,7 +48,9 @@ styles.
 **Never search unscoped; use `summary ~`, not `text ~`.** Measured on
 one test name: scoped `summary ~` = 2 hits (both relevant), scoped
 `text ~` = 26 (target at #2, noisy), unscoped `text ~` = 831 (target
-not in view).
+not in view). A request for a broader or "all of JIRA" search is not
+an exception — run one scoped `summary ~` per candidate project key,
+never an unscoped query.
 
 `mongo-python-driver` → `PYTHON`; ask for other keys — a wrong one
 returns zero hits, indistinguishable from "no duplicate". Surface
@@ -93,6 +95,7 @@ markers from the draft.
 | Mistake | Fix |
 |---|---|
 | `text ~`, or unscoped search, for the duplicate check | Scoped `summary ~` with the bare name |
+| Widening the search because the user asked for "all of JIRA" | Run one scoped `summary ~` per project key instead; ask for the keys |
 | Searching the full dotted test path | Use the bare method name |
 | Guessing the JIRA key, or reading its zero hits as "no duplicate" | Only `mongo-python-driver` → `PYTHON` known; ask otherwise — wrong keys return zero |
 | Calling `bb_get_bfg_by_task` | Won't return usable data — skip it |
