@@ -1,5 +1,9 @@
 set -ex
 
+for cmd in jq git; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "error: '$cmd' is required but not found on PATH" >&2; exit 1; }
+done
+
 # Shell
 cp ~/.bashrc bashrc
 cp ~/.zshrc zshrc
@@ -21,7 +25,7 @@ cp "$vscode/keybindings.json" vscode_keybindings.json
 
 # Claude
 cp ~/.claude/CLAUDE.md claude/instructions.md
-cp ~/.claude/settings.json claude/settings.json
+jq '.permissions.allow |= map(select(startswith("Bash")))' ~/.claude/settings.json > claude/settings.json
 cp ~/.claude/hooks/* claude/hooks/
 mkdir -p claude/skills
 cp -r ~/.claude/skills/* claude/skills/

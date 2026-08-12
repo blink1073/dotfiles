@@ -1,5 +1,9 @@
 set -ex
 
+for cmd in jq git; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "error: '$cmd' is required but not found on PATH" >&2; exit 1; }
+done
+
 # Workspace
 mkdir -p $HOME/workspace/jupyter
 
@@ -39,6 +43,14 @@ cp vscode_keybindings.json "$vscode/keybindings.json"
 mkdir -p ~/.claude/hooks
 mkdir -p ~/.claude/skills
 cp claude/instructions.md ~/.claude/CLAUDE.md
-cp claude/settings.json ~/.claude/settings.json
+if [ -f ~/.claude/settings.json ]; then
+  existing_non_bash_allow=$(jq '[.permissions.allow[]? | select(startswith("Bash") | not)]' ~/.claude/settings.json)
+  jq --argjson existing "$existing_non_bash_allow" \
+    '.permissions.allow += $existing | .permissions.allow |= unique' \
+    claude/settings.json > /tmp/claude_settings_merged.json
+  mv /tmp/claude_settings_merged.json ~/.claude/settings.json
+else
+  cp claude/settings.json ~/.claude/settings.json
+fi
 cp claude/hooks/* ~/.claude/hooks/
 cp -r claude/skills/* ~/.claude/skills/
