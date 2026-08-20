@@ -12,10 +12,10 @@ supplies data gathering and regression-vs-flake verdict.
 
 ## Overview
 
-Tools come from the DevProd MCP Gateway — match by name suffix
+Tools come from an MCP server — match by name suffix
 (`evg_get_task`, `jira_search_issues`, …); prefix is install-specific.
-If unavailable, say so and stop — no fallback (the Evergreen API needs
-interactive SSO; the sandboxed browser can't complete Okta MFA).
+If unavailable, say so and stop — no fallback (the API needs an
+interactive browser sign-in the sandboxed browser can't complete).
 
 ## Gathering
 

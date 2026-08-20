@@ -39,6 +39,66 @@ against this list before finishing.
 - **Match the register to the reader.** A docstring reader wants
   mechanics; a PR reviewer wants judgment and risk; end-user docs want
   plain language. Don't write all three the same way.
+- **Cut every sentence that doesn't change what the reader does or
+  knows.** For comments, docstrings, and PR descriptions specifically:
+  if deleting a sentence loses no information the reader needs to act or
+  understand, delete it. Prefer a fragment or a short list item over a
+  full sentence when either carries the same information.
+- **One line beats one paragraph.** Comments: one line, no more, unless
+  a non-obvious invariant genuinely needs two. PR descriptions: state
+  what changed and why in as few sentences as the reviewer needs to
+  approve — skip background they already have, skip restating the
+  diff, skip a closing summary that repeats the opening.
+- **No throat-clearing before the answer.** Don't preface a comment or
+  PR description with context-setting ("This PR adds...", "This change
+  is needed because...") when the fact itself can open the sentence
+  ("Adds retry to..."). Start with the verb or the noun that matters.
+
+## Budgets
+
+Every piece of prose has a size. Write to the size below, then stop.
+
+| Thing | Budget |
+|---|---|
+| Inline comment | 1 line; 2 only for a non-obvious invariant |
+| Docstring summary line | 1 sentence |
+| Docstring extended summary | none by default; at most 2 sentences, and only for a constraint or gotcha the body doesn't show |
+| Parameter, return, or raises entry | 1 clause |
+| Commit message body | none if the subject carries it; at most 3 sentences, wrapped at 72 columns |
+| PR summary | 2 sentences |
+| PR or ticket bullet | 1 line, 1 claim |
+| Ticket problem statement | 3 sentences; more only when the problem has separate symptoms the reader must tell apart |
+| Error message | 1 sentence, naming what failed and what to do; when the cause is genuinely ambiguous, 1 sentence naming the failure plus 1 listing the remedies |
+
+Over budget means cut a claim. Splitting one long sentence into two short
+ones is not a cut, and neither is packing the same claims onto fewer,
+longer lines: budgets in sentences are about content, not line count, so
+keep the wrapping the format calls for. Reaching a budget is not a
+requirement to fill it: the best extended summary is usually no extended
+summary, and the best comment is usually the one you didn't need because
+the code says it.
+
+## Depth
+
+Give the reader the fact at one level of detail and stop. Depth is the
+habit of explaining the fact, then justifying it, then restating its
+consequence.
+
+- **Don't explain what the code shows.** A docstring that walks through
+  the precedence order of a five-line function, or a bullet that
+  paraphrases the diff, is telling the reader something they are already
+  looking at. Say what they can't see: the constraint, the gotcha, the
+  reason for the choice.
+- **Answer the reader's one question.** A reviewer is asking "should I
+  approve this?" A docstring reader is asking "how do I call this?" History
+  of the old behavior, mechanism visible in the diff, and background they
+  already have are different questions. Leave them out unless the answer
+  depends on them.
+- **No second sentence propping up the first.** If a bullet needs a
+  follow-up sentence to explain it, rewrite the bullet. Don't append.
+- **Skip the sections with nothing to say.** An empty-by-convention
+  Parameters block, a "Motivation" that restates the summary, a "Notes"
+  section holding one obvious remark: omit them rather than filling them.
 
 ## Common Mistakes
 
@@ -48,3 +108,7 @@ against this list before finishing.
 | "It's important to note that this may cause issues in some cases." | Name the actual case, or cut the sentence. |
 | "This powerful utility seamlessly handles..." | "This handles..." |
 | "Data flows from the parser -> validator -> writer." | "The parser hands data to the validator, which hands it to the writer." |
+| Docstring longer than the function it documents | Cut to the summary line; add back only what the body doesn't show. |
+| Parameters section restating the type annotation for every argument | Keep entries that say what the value *means*; drop the rest. |
+| A "Changes" bullet that runs four sentences | One line, one claim. Split into separate bullets or cut. |
+| PR summary that explains the mechanism the diff already shows | State what changed and why the reviewer should approve. |
