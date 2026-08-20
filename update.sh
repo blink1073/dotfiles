@@ -1,6 +1,6 @@
 set -ex
 
-for cmd in jq git; do
+for cmd in jq git rsync; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "error: '$cmd' is required but not found on PATH" >&2; exit 1; }
 done
 
@@ -28,4 +28,5 @@ cp ~/.claude/CLAUDE.md claude/instructions.md
 jq '.permissions.allow |= map(select(startswith("Bash")))' ~/.claude/settings.json > claude/settings.json
 cp ~/.claude/hooks/* claude/hooks/
 mkdir -p claude/skills
-cp -r ~/.claude/skills/* claude/skills/
+# Mirror, so a skill deleted from ~/.claude is deleted here too.
+rsync -a --delete ~/.claude/skills/ claude/skills/
