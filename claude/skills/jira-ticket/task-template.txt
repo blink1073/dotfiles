@@ -1,20 +1,10 @@
-h2. Summary
 
-_What should change, in one or two sentences._
+h3. *Context*
+{color:#505f79}Describe the background behind the problem.{color}
 
-h2. Current state
+h3. *Definition of done*
+{color:#505f79}What must be done to consider the task complete?{color}
 
-_What the system does today, and why that's a problem or a gap._
+h3. *Pitfalls*
+{color:#505f79}What should the implementer watch out for?  What are the risks?{color}
 
-h2. Desired state
-
-_What it should do instead._
-
-h2. Acceptance criteria
-
-*
-*
-
-h2. Notes
-
-_Links, constraints, related tickets._

@@ -1,29 +1,19 @@
-h2. Summary
+h3. Detailed steps to reproduce the problem?
+_Include full traceback, if possible_
 
-_What is broken, in one or two sentences._
+h3. Definition of done: what must be done to consider the task complete?
 
-h2. Steps to reproduce
+h3. The exact Python version used, with patch level:
+{{$ python -c "import sys; print(sys.version)"}}
 
-#
-#
+h3. The exact version of PyMongo used, with patch level:
+{{$ python -c "import pymongo; print(pymongo.version); print(pymongo.has_c())"}}
 
-h2. Expected result
+h3. Describe how MongoDB is set up.  Local vs Hosted, version, topology, load balanced, etc.
 
-_What should happen._
+h3. The operating system and version (e.g. Windows 7, OSX 10.8, ...)
 
-h2. Actual result
+h3. Web framework or asynchronous network library used, if any, with version (e.g. Django 1.7, mod_wsgi 4.3.0, gevent 1.0.1, Tornado 4.0.2, ...)
 
-_What happens instead._
-
-{code}
-Error message, stack trace, or output.
-{code}
-
-h2. Environment
-
-* Version:
-* Platform:
-
-h2. Impact
-
-_Who is affected, how badly, and whether there's a workaround._
+h3. *Security Vulnerabilities*
+If you’ve identified a security vulnerability in a driver or any other MongoDB project, please report it according to the instructions [here|https://www.mongodb.com/docs/manual/tutorial/create-a-vulnerability-report/]

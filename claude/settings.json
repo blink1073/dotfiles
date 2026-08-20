@@ -15,15 +15,30 @@
       "Bash(just install:*)",
       "Bash(git branch --show-current)",
       "Bash(git remote get-url origin)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
       "Bash(gh run view:*)",
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
       "Bash(gh issue view:*)",
       "Bash(gh api repos/*/actions/jobs/*/logs)",
       "Bash(gh api repos/*)",
-      "Bash(gh api /repos/*)"
+      "Bash(gh api /repos/*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh repo view:*)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr comment:*)"
+    ]
+  },
+  "autoMode": {
+    "hard_deny": [
+      "$defaults",
+      "Bash(gh pr create:*) - never open a PR without the user's explicit in-chat confirmation, even in Auto mode",
+      "Bash(gh pr merge:*) - never merge a PR without the user's explicit in-chat confirmation, even in Auto mode",
+      "Bash(git push:*) - never push to any remote without the user's explicit in-chat confirmation, even in Auto mode"
+    ]
   },
   "hooks": {
     "PreToolUse": [
