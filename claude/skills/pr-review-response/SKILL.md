@@ -13,6 +13,15 @@ never unprompted, and never posted.
 
 ## Workflow
 
+**Given a direct link to a specific comment:** skip discovery entirely — no
+fetching all comments, no filtering resolved/answered threads. Fetch only
+that comment (its URL encodes the PR and comment/review ID; use `gh api
+repos/{owner}/{repo}/pulls/comments/{id}` for an inline review comment,
+`.../issues/comments/{id}` for a conversation comment, or `.../pulls/{pr}#pullrequestreview-{id}`'s
+review body via `.../pulls/{pr}/reviews/{id}`, matching the URL shape). Go
+straight to step 4 for that one comment, then step 5, then step 6. Steps
+1-3 apply only when no specific comment link was given.
+
 1. **Resolve the PR.** Infer from the current branch (`gh pr view --json
    number`). Ask for the PR number/URL if that fails.
 2. **Fetch comments — all three sources.** Missing any of these silently
