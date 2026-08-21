@@ -55,10 +55,12 @@ against this list before finishing.
   ("Adds retry to..."). Start with the verb or the noun that matters.
 - **Don't hard-wrap text.** Let lines run long and let the reader's
   client wrap them; don't insert your own line endings to force a
-  narrow column width. The one exception is editing a documentation
-  file that already hard-wraps by hand (existing lines manually broken
-  at a fixed width) — match its existing convention there. Never impose
-  manual wrapping on prose that doesn't already have it.
+  narrow column width. Two exceptions. Editing a documentation file
+  that already hard-wraps by hand (existing lines manually broken at a
+  fixed width): match its existing convention. Writing a git commit
+  body: wrap at 72, because git never reflows a body and `git log`
+  indents it by four spaces. Never impose manual wrapping on prose that
+  doesn't already have it.
 
 ## Budgets
 
@@ -70,7 +72,7 @@ Every piece of prose has a size. Write to the size below, then stop.
 | Docstring summary line | 1 sentence |
 | Docstring extended summary | none by default; at most 2 sentences, and only for a constraint or gotcha the body doesn't show |
 | Parameter, return, or raises entry | 1 clause |
-| Commit message body | none if the subject carries it; at most 3 sentences, unwrapped |
+| Commit message body | none if the subject carries it; at most 3 sentences, wrapped at 72 |
 | PR summary | 2 sentences |
 | PR or ticket bullet | 1 line, 1 claim |
 | Ticket problem statement | 3 sentences; more only when the problem has separate symptoms the reader must tell apart |
