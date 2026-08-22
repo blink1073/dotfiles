@@ -31,12 +31,6 @@ cp pypirc ~/.pypirc
 cp condarc ~/.condarc
 cp jupyterhub_config.py ~/workspace
 
-# IPython
-python3 -m venv /tmp/ipython-venv
-/tmp/ipython-venv/bin/pip install ipython
-/tmp/ipython-venv/bin/ipython profile create default
-cp ipython_startup.py ~/.ipython/profile_default/startup/
-
 # VSCode
 vscode="$HOME/Library/Application Support/Code/User"
 mkdir -p "$vscode"

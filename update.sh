@@ -19,9 +19,6 @@ cp ~/.gitconfig gitconfig
 git config -f gitconfig --unset user.email || true
 git config -f gitconfig --unset user.signingkey || true
 
-# IPython
-cp ~/.ipython/profile_default/startup/ipython_startup.py .
-
 # VSCode
 vscode="$HOME/Library/Application Support/Code/User"
 cp "$vscode/settings.json" vscode_settings.json
