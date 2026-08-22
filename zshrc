@@ -76,13 +76,13 @@ export NVM_DIR="$HOME/workspace/drivers-evergreen-tools/.evergreen/github_app"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/steve.silvester/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/steve.silvester/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/steve.silvester/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/steve.silvester/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc"; fi
 
 # The following line enables Docker CLI completions.
-fpath=(/Users/steve.silvester/.docker/completions $fpath)
+fpath=($HOME/.docker/completions $fpath)
 
 # Smarter completion initialization
 autoload -Uz compinit
@@ -95,14 +95,14 @@ export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/Users/steve.silvester/miniforge3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+__conda_setup="$("$HOME/miniforge3/bin/conda" 'shell.zsh' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/Users/steve.silvester/miniforge3/etc/profile.d/conda.sh" ]; then
-        . "/Users/steve.silvester/miniforge3/etc/profile.d/conda.sh"
+    if [ -f "$HOME/miniforge3/etc/profile.d/conda.sh" ]; then
+        . "$HOME/miniforge3/etc/profile.d/conda.sh"
     else
-        export PATH="/Users/steve.silvester/miniforge3/bin:$PATH"
+        export PATH="$HOME/miniforge3/bin:$PATH"
     fi
 fi
 unset __conda_setup
@@ -111,8 +111,8 @@ unset __conda_setup
 
 # >>> mamba initialize >>>
 # !! Contents within this block are managed by 'mamba shell init' !!
-export MAMBA_EXE='/Users/steve.silvester/miniforge3/bin/mamba';
-export MAMBA_ROOT_PREFIX='/Users/steve.silvester/miniforge3';
+export MAMBA_EXE="$HOME/miniforge3/bin/mamba";
+export MAMBA_ROOT_PREFIX="$HOME/miniforge3";
 __mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__mamba_setup"

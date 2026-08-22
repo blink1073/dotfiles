@@ -5,28 +5,27 @@
   },
   "permissions": {
     "allow": [
-      "Bash(just test:*)",
-      "Bash(just benchmark:*)",
-      "Bash(just pre-commit:*)",
-      "Bash(just test:*)",
-      "Bash(just docs:*)",
-      "Bash(just cover:*)",
-      "Bash(just typing:*)",
-      "Bash(just install:*)",
+      "Bash(gh api /repos/*)",
+      "Bash(gh api repos/*)",
+      "Bash(gh api repos/*/actions/jobs/*/logs)",
+      "Bash(gh gist create:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh run view:*)",
       "Bash(git branch --show-current)",
       "Bash(git remote get-url origin)",
       "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(gh run view:*)",
-      "Bash(gh pr view:*)",
-      "Bash(gh pr diff:*)",
-      "Bash(gh issue view:*)",
-      "Bash(gh api repos/*/actions/jobs/*/logs)",
-      "Bash(gh api repos/*)",
-      "Bash(gh api /repos/*)",
-      "Bash(gh pr checks:*)",
-      "Bash(gh repo view:*)",
-      "Bash(gh gist create:*)"
+      "Bash(just benchmark:*)",
+      "Bash(just cover:*)",
+      "Bash(just docs:*)",
+      "Bash(just install:*)",
+      "Bash(just pre-commit:*)",
+      "Bash(just test:*)",
+      "Bash(just typing:*)",
+      "Bash(tail:*)"
     ],
     "deny": [
       "Bash(gh pr merge:*)",
@@ -48,15 +47,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /Users/steve.silvester/.claude/hooks/check_gh_pr.py"
+            "command": "python3 \"$HOME/.claude/hooks/check_gh_pr.py\""
           },
           {
             "type": "command",
-            "command": "python3 /Users/steve.silvester/.claude/hooks/check_git_add.py"
+            "command": "python3 \"$HOME/.claude/hooks/check_git_add.py\""
           },
           {
             "type": "command",
-            "command": "python3 /Users/steve.silvester/.claude/hooks/check_git_commit.py"
+            "command": "python3 \"$HOME/.claude/hooks/check_git_commit.py\""
           }
         ]
       }

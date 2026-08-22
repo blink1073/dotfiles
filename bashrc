@@ -86,6 +86,10 @@ alias gr='git remote -v'
 alias gprb='git pull --rebase'
 alias gnvm="git reset --soft HEAD~1"
 
+if ! command -v docker >/dev/null 2>&1 && command -v podman >/dev/null 2>&1; then
+    alias docker=podman
+fi
+
 alias run-in-docker="docker run -it -v $(pwd):/usr/src/project jupyter/minimal-notebook:latest /bin/bash"
 alias el="ls $HOME/workspace/.venvs"
 alias pymongo="workon mongo-python-driver"
@@ -94,13 +98,13 @@ alias motor="workon motor"
 export DRIVERS_TOOLS="$HOME/workspace/drivers-evergreen-tools"
 alias run-server="$HOME/workspace/drivers-evergreen-tools/.evergreen/orchestration/drivers-orchestration run"
 
-alias python3.8 'uv run --python=3.8 python3'
-alias python3.9 'uv run --python=3.9 python3'
-alias python3.10 'uv run --python=3.10 python3'
-alias python3.11 'uv run --python=3.11 python3'
-alias python3.12 'uv run --python=3.12 python3'
-alias python3.13 'uv run --python=3.13 python3'
-alias python3 python3.12
+alias python3.8='uv run --python=3.8 python3'
+alias python3.9='uv run --python=3.9 python3'
+alias python3.10='uv run --python=3.10 python3'
+alias python3.11='uv run --python=3.11 python3'
+alias python3.12='uv run --python=3.12 python3'
+alias python3.13='uv run --python=3.13 python3'
+alias python3=python3.12
 
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
@@ -362,7 +366,7 @@ workon() {
 alias wo=workon
 
 ubuntu-test() {
-    bash /Users/stevensilvester/workspace/docker-tester/run.sh
+    bash "$HOME/workspace/docker-tester/run.sh"
 }
 
 edit() {

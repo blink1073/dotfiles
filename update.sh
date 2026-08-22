@@ -1,4 +1,8 @@
+#!/usr/bin/env bash
 set -ex
+
+# Every path below is relative to the repo root.
+cd "$(dirname "$0")"
 
 for cmd in jq git rsync; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "error: '$cmd' is required but not found on PATH" >&2; exit 1; }
@@ -25,7 +29,8 @@ cp "$vscode/keybindings.json" vscode_keybindings.json
 
 # Claude
 cp ~/.claude/CLAUDE.md claude/instructions.md
-jq '.permissions.allow |= map(select(startswith("Bash")))' ~/.claude/settings.json > claude/settings.json
+# `unique` sorts as well as dedupes, matching install.sh, so repeated syncs are a no-op.
+jq '.permissions.allow |= (map(select(startswith("Bash"))) | unique)' ~/.claude/settings.json > claude/settings.json
 cp ~/.claude/hooks/* claude/hooks/
 mkdir -p claude/skills
 # Mirror, so a skill deleted from ~/.claude is deleted here too.

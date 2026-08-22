@@ -1,4 +1,8 @@
+#!/usr/bin/env bash
 set -ex
+
+# Every path below is relative to the repo root.
+cd "$(dirname "$0")"
 
 for cmd in jq git; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "error: '$cmd' is required but not found on PATH" >&2; exit 1; }
