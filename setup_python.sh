@@ -12,9 +12,12 @@
 # `just install` does that, and direnv recreates .venv on the next cd.
 set -euo pipefail
 
-# Newest macOS installer per line. 3.11 and 3.12 are security-only upstream, so
-# their last binary release is older than the current source release.
+# Newest macOS installer per line. 3.9 through 3.12 are security-only or EOL
+# upstream, so their last binary release is older than the current source
+# release. 3.9 and 3.10 stopped shipping installers after 3.9.13 and 3.10.11.
 VERSIONS=(
+  "3.9:3.9.13"
+  "3.10:3.10.11"
   "3.11:3.11.9"
   "3.12:3.12.10"
   "3.13:3.13.15"
@@ -32,7 +35,18 @@ DEFAULT_VERSION=3.11
 # so a release candidate is never the default free-threaded interpreter.
 DEFAULT_FREETHREADED=3.14
 
-PSF_TEAM_ID="BMM5U3QVKW"
+# PyPy has no python.org installer or PSF signature; installed from a tarball
+# pinned to its published sha256 instead. Update both when bumping a version:
+# https://www.pypy.org/checksums.html
+PYPY_VERSIONS=(
+  "pypy3.9:7.3.16:88f824e7a2d676440d09bc90fc959ae0fd3557d7e2f14bfbbe53d41d159a47fe"
+  "pypy3.11:7.3.23:4747b3aceba4c1c6104cddc0fe5ea302101d32955f0957347b9ecc4fbd7aed05"
+)
+PYPY_PREFIX=/usr/local/lib
+
+# python.org installers have been signed by either the PSF org account or,
+# for older 3.9/3.10 releases, release manager Ned Deily individually.
+PSF_TEAM_IDS=("BMM5U3QVKW" "DJ3H93M7VJ")
 FORCE=0
 DRY_RUN=0
 
@@ -55,6 +69,13 @@ is_freethreaded() {
   return 1
 }
 
+# True if $1 >= $2 as a version string. Never downgrade an interpreter someone
+# installed by hand ahead of what this script currently pins.
+version_ge() {
+  [ "$1" = "$2" ] && return 0
+  [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" = "$1" ]
+}
+
 WORKDIR=$(mktemp -d -t setup-python)
 trap 'rm -rf "$WORKDIR"' EXIT
 
@@ -65,8 +86,8 @@ for entry in "${VERSIONS[@]}"; do
 
   if [ "$FORCE" = 0 ] && [ -x "/Library/Frameworks/Python.framework/Versions/$series/bin/python3" ]; then
     have=$("/Library/Frameworks/Python.framework/Versions/$series/bin/python3" -c 'import platform; print(platform.python_version())' 2>/dev/null || echo "?")
-    if [ "$have" = "$full" ]; then
-      echo "  $series: $full already installed"
+    if [ "$have" != "?" ] && version_ge "$have" "$full"; then
+      echo "  $series: $have already installed (>= $full)"
       continue
     fi
     echo "  $series: found $have, want $full"
@@ -81,8 +102,12 @@ for entry in "${VERSIONS[@]}"; do
   run curl -fsSL -o "$WORKDIR/$pkg" "$url"
 
   if [ "$DRY_RUN" = 0 ]; then
-    pkgutil --check-signature "$WORKDIR/$pkg" | grep -q "Python Software Foundation ($PSF_TEAM_ID)" \
-      || { echo "error: $pkg is not signed by the PSF" >&2; exit 1; }
+    sig=$(pkgutil --check-signature "$WORKDIR/$pkg")
+    ok=0
+    for team in "${PSF_TEAM_IDS[@]}"; do
+      echo "$sig" | grep -q "($team)" && { ok=1; break; }
+    done
+    [ "$ok" = 1 ] || { echo "error: $pkg is not signed by a trusted release manager" >&2; exit 1; }
   fi
 
   # Skip IDLE and the docs. Skip the shell profile updater too: every installer
@@ -108,6 +133,40 @@ for entry in "${VERSIONS[@]}"; do
 
   certs="/Applications/Python $series/Install Certificates.command"
   [ -f "$certs" ] && run bash "$certs" >/dev/null 2>&1 || true
+done
+
+echo "==> Installing PyPy"
+arch=$(uname -m)
+for entry in "${PYPY_VERSIONS[@]}"; do
+  IFS=: read -r name version sha256 <<< "$entry"
+  dest="$PYPY_PREFIX/$name-v$version-macos_$arch"
+
+  if [ "$FORCE" = 0 ]; then
+    have=$(ls -d "$PYPY_PREFIX/$name-v"*"-macos_$arch" 2>/dev/null \
+      | sed -E "s#.*/$name-v(.*)-macos_$arch#\1#" | sort -V | tail -1)
+    if [ -n "$have" ] && [ -x "$PYPY_PREFIX/$name-v$have-macos_$arch/bin/$name" ] && version_ge "$have" "$version"; then
+      echo "  $name: $have already installed (>= $version)"
+      continue
+    fi
+  fi
+
+  archive="$name-v$version-macos_$arch.tar.bz2"
+  url="https://downloads.python.org/pypy/$archive"
+
+  echo "  $name: downloading $version"
+  run curl -fsSL -o "$WORKDIR/$archive" "$url"
+
+  if [ "$DRY_RUN" = 0 ]; then
+    got=$(shasum -a 256 "$WORKDIR/$archive" | awk '{print $1}')
+    [ "$got" = "$sha256" ] || { echo "error: $archive checksum mismatch (got $got, want $sha256)" >&2; exit 1; }
+  fi
+
+  echo "  $name: installing to $dest (needs sudo)"
+  run sudo mkdir -p "$PYPY_PREFIX"
+  run sudo rm -rf "$dest"
+  run sudo tar -xjf "$WORKDIR/$archive" -C "$PYPY_PREFIX"
+  run sudo ln -sfn "$dest/bin/$name" "/usr/local/bin/$name"
+  INSTALLED_ANY=1
 done
 
 # The UNIX tools component links python3.Xt whether or not the free-threaded
@@ -175,7 +234,7 @@ UVTOML
     home=$(awk -F' = ' '/^home/{print $2}' "$cfg")
     if [ ! -x "$home/python3" ] && [ ! -x "$home/python" ]; then
       echo "  rebuilding tool: $tool"
-      run uv tool install --reinstall "$tool"
+      run uv tool install --reinstall --force "$tool"
     fi
   done
 else
@@ -190,6 +249,11 @@ for entry in "${VERSIONS[@]}"; do
   [ -x "$bin" ] && printf '  %-28s %s\n' "$bin" "$("$bin" -V 2>&1)"
   t="${bin}t"
   [ -x "$t" ] && printf '  %-28s %s (GIL: %s)\n' "$t" "$("$t" -V 2>&1)" "$("$t" -c 'import sys; print(sys._is_gil_enabled())' 2>&1)"
+done
+for entry in "${PYPY_VERSIONS[@]}"; do
+  name="${entry%%:*}"
+  bin="/usr/local/bin/$name"
+  [ -x "$bin" ] && printf '  %-28s %s\n' "$bin" "$("$bin" -V 2>&1)"
 done
 
 # bashrc puts the default framework's bin ahead of Homebrew, and only an
