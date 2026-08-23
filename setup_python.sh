@@ -28,6 +28,10 @@ FREETHREADED=(3.14 3.15)
 # Backs bare `python3` and `pip3`. The PATH entry that selects it lives in bashrc.
 DEFAULT_VERSION=3.11
 
+# Backs bare `python3t`. Must be a line listed in FREETHREADED. Kept off 3.15
+# so a release candidate is never the default free-threaded interpreter.
+DEFAULT_FREETHREADED=3.14
+
 PSF_TEAM_ID="BMM5U3QVKW"
 FORCE=0
 DRY_RUN=0
@@ -116,12 +120,24 @@ for f in /usr/local/bin/python3*; do
   fi
 done
 
-echo "==> Pointing /usr/local/bin/python3 at $DEFAULT_VERSION"
-for name in python3 python3-config; do
-  target="../../../Library/Frameworks/Python.framework/Versions/$DEFAULT_VERSION/bin/$name"
-  [ -e "/Library/Frameworks/Python.framework/Versions/$DEFAULT_VERSION/bin/$name" ] \
-    && run sudo ln -sfn "$target" "/usr/local/bin/$name"
-done
+# Each installer claims the unversioned links, so the last one to run owns them.
+# Repoint at the chosen defaults instead.
+link_default() {
+  local framework="$1" version="$2" name
+  shift 2
+  echo "==> Pointing /usr/local/bin/$1 at $version"
+  for name in "$@"; do
+    local src="/Library/Frameworks/$framework.framework/Versions/$version/bin/$name"
+    if [ -e "$src" ]; then
+      run sudo ln -sfn "../../../Library/Frameworks/$framework.framework/Versions/$version/bin/$name" "/usr/local/bin/$name"
+    else
+      echo "  skipping $name, $src not found"
+    fi
+  done
+}
+
+link_default Python  "$DEFAULT_VERSION"      python3 python3-config
+link_default PythonT "$DEFAULT_FREETHREADED" python3t python3t-config
 
 echo "==> Configuring uv"
 if command -v uv >/dev/null 2>&1; then
