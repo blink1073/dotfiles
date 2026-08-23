@@ -98,16 +98,12 @@ alias motor="workon motor"
 export DRIVERS_TOOLS="$HOME/workspace/drivers-evergreen-tools"
 alias run-server="$HOME/workspace/drivers-evergreen-tools/.evergreen/orchestration/drivers-orchestration run"
 
-alias python3.8='uv run --python=3.8 python3'
-alias python3.9='uv run --python=3.9 python3'
-alias python3.10='uv run --python=3.10 python3'
-alias python3.11='uv run --python=3.11 python3'
-alias python3.12='uv run --python=3.12 python3'
-alias python3.13='uv run --python=3.13 python3'
-alias python3=python3.12
-
 export TMPDIR='/tmp'
 export PATH="$HOME/bin:$PATH"
+
+# Make bare `python3`/`pip3` the python.org 3.11 build. This has to come
+# after `brew shellenv` in .zshrc, which prepends /opt/homebrew/bin.
+export PATH="/Library/Frameworks/Python.framework/Versions/3.11/bin:$PATH"
 
 function search() {
     git --no-pager grep -i -n $1 -- ':!uv.lock'
@@ -353,12 +349,12 @@ workon() {
     cd ~/workspace/$name
     if [ ! -f .envrc ]; then
         if [ -f uv.lock ]; then
-            echo "test -d .venv || uv venv --seed --python 3.11" > .envrc
+            echo "test -d .venv || python3.11 -m venv .venv" > .envrc
             echo "source .venv/bin/activate" >> .envrc
         elif [ -f poetry.lock ]; then
-            echo "poetry env use \$(pyenv prefix 3.11)" > .envrc
+            echo "poetry env use /usr/local/bin/python3.11" > .envrc
             echo "poetry install" >> .envrc
-            echo "eval $(poetry env activate)" >> .envrc
+            echo "eval \$(poetry env activate)" >> .envrc
         fi
         direnv allow .
     fi
@@ -411,7 +407,7 @@ clone-ticket() {
     git clone "git@github.com:${org}/${repo}.git" "$dest" --origin upstream || return 1
     cd "$dest" || return 1
     git remote add origin "git@github.com:blink1073/${repo}.git"
-    echo "test -d .venv || uv venv --seed --python 3.11" > .envrc
+    echo "test -d .venv || python3.11 -m venv .venv" > .envrc
     direnv allow .
     git checkout -b "$ticket"
     uv tool run pre-commit install

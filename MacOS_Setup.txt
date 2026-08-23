@@ -3,3 +3,4 @@
 3. Install Package Control
 4. Install LSP, EnhancedSidebar, and LSP-pyright
 5. Run install.sh
+6. Run setup_python.sh (installs python.org CPython 3.11-3.15, points uv at them)
