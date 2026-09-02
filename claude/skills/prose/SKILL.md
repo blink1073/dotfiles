@@ -29,6 +29,10 @@ tokens; the review is still yours.
 Apply every item below to any prose you write. Read the draft back
 against this list before finishing.
 
+- **Write Simplified Technical English.** Follow ASD-STE100: short
+  sentences, one instruction per sentence, the active voice, a consistent
+  term for each thing, and simple tenses. Approved-sense common words over
+  jargon or elegant variation.
 - **Lead with the point.** State the conclusion or the point of the
   paragraph in its first sentence. Don't wind up to it.
 - **Cut restatement.** Delete any sentence whose only job is to describe
@@ -55,6 +59,18 @@ against this list before finishing.
   if deleting a sentence loses no information the reader needs to act or
   understand, delete it. Prefer a fragment or a short list item over a
   full sentence when either carries the same information.
+- **Comments describe the code as it stands.** Write for a reader with
+  zero context on how the code was written. No references to prior
+  versions, bugs fixed, or changes made — including what you just worked
+  out while debugging. State the lesson as a property or constraint ("end
+  is exclusive"), not as history ("this used to be off-by-one"). If a
+  comment only makes sense to someone who watched the code evolve,
+  rewrite or remove it.
+- **Keep comments proportional to the code.** Usually one line. Don't
+  restate what the code says, and don't justify one line of configuration
+  with a paragraph of rationale. Reasoning that needs more than a line or
+  two belongs in a commit message or README, not the source. A ticket or
+  issue number replaces the story: cite it, don't summarize it.
 - **One line beats one paragraph.** Comments: one line, no more, unless
   a non-obvious invariant genuinely needs two. PR descriptions: state
   what changed and why in as few sentences as the reviewer needs to
@@ -131,3 +147,5 @@ consequence.
 | Parameters section restating the type annotation for every argument | Keep entries that say what the value *means*; drop the rest. |
 | A "Changes" bullet that runs four sentences | One line, one claim. Split into separate bullets or cut. |
 | PR summary that explains the mechanism the diff already shows | State what changed and why the reviewer should approve. |
+| "// Fixed the off-by-one here — was using <= before" | "// end is exclusive" |
+| A one-line config change under a paragraph explaining the incident that prompted it | One line, or nothing; put the rationale in the commit message. |
