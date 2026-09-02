@@ -31,4 +31,5 @@ jq '.permissions.allow |= (map(select(startswith("Bash"))) | unique)' ~/.claude/
 cp ~/.claude/hooks/* claude/hooks/
 mkdir -p claude/skills
 # Mirror, so a skill deleted from ~/.claude is deleted here too.
-rsync -a --delete ~/.claude/skills/ claude/skills/
+# Excludes evg/evergreen skills: they're work-machine-only, not for the public repo.
+rsync -a --delete --exclude='*evg*' --exclude='*evergreen*' ~/.claude/skills/ claude/skills/
