@@ -15,12 +15,24 @@ never unprompted, and never posted.
 
 **Given a direct link to a specific comment:** skip discovery entirely — no
 fetching all comments, no filtering resolved/answered threads. Fetch only
-that comment (its URL encodes the PR and comment/review ID; use `gh api
-repos/{owner}/{repo}/pulls/comments/{id}` for an inline review comment,
-`.../issues/comments/{id}` for a conversation comment, or `.../pulls/{pr}#pullrequestreview-{id}`'s
-review body via `.../pulls/{pr}/reviews/{id}`, matching the URL shape). Go
-straight to step 4 for that one comment, then step 5, then step 6. Steps
-1-3 apply only when no specific comment link was given.
+that comment (its URL encodes the PR and comment ID; use `gh api
+repos/{owner}/{repo}/pulls/comments/{id}` for an inline review comment, or
+`.../issues/comments/{id}` for a conversation comment, matching the URL
+shape). Go straight to step 4 for that one comment, then step 5, then step 6.
+
+**Given a direct link to a review** (`.../pull/{pr}#pullrequestreview-{id}`):
+a review is a container, not a single comment — fetch its body (`gh api
+repos/{owner}/{repo}/pulls/{pr}/reviews/{id}`, the `.body` field) *and* every
+inline comment nested under it: `gh api repos/{owner}/{repo}/pulls/{pr}/comments`,
+kept only where `pull_request_review_id` matches `{id}`. Fetching just the
+body misses these — e.g. reviewing `.../pull/1974#pullrequestreview-5101140270`
+must also pick up `.../pull/1974#discussion_r3923897771`, an inline comment
+carrying that same `pull_request_review_id`. Treat the body (each finding
+inside a `<details>` block as its own comment, same as step 2) and each
+nested inline comment as separate comments; go straight to step 4 for all of
+them, then step 5, then step 6.
+
+Steps 1-3 apply only when no specific comment or review link was given.
 
 1. **Resolve the PR.** Infer from the current branch (`gh pr view --json
    number`). Ask for the PR number/URL if that fails.
@@ -85,3 +97,4 @@ straight to step 4 for that one comment, then step 5, then step 6. Steps
 | Fetching only the two comment endpoints and reporting "no comments" | Review bodies are a third source; check `pulls/{pr}/reviews` too |
 | Trusting a review's own "generated no new comments" summary | Its body may still hide findings in a collapsed `<details>` block |
 | Assuming a review body finding is handled because threads are resolved | Body findings have no thread to resolve; check the code instead |
+| Fetching only a review's body from a `#pullrequestreview-{id}` link | Also filter `pulls/{pr}/comments` by matching `pull_request_review_id` — a review nests inline comments under it |
