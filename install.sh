@@ -42,10 +42,14 @@ mkdir -p ~/.claude/hooks
 mkdir -p ~/.claude/skills
 cp claude/instructions.md ~/.claude/CLAUDE.md
 if [ -f ~/.claude/settings.json ]; then
-  existing_non_bash_allow=$(jq '[.permissions.allow[]? | select(startswith("Bash") | not)]' ~/.claude/settings.json)
-  jq --argjson existing "$existing_non_bash_allow" \
-    '.permissions.allow += $existing | .permissions.allow |= unique' \
-    claude/settings.json > /tmp/claude_settings_merged.json
+  # Merge the repo's Bash allow-list into the existing file, keeping
+  # everything else already on this machine (env vars, model routing,
+  # extra deny entries, etc.) untouched.
+  repo_bash_allow=$(jq -c '.permissions.allow' claude/settings.json)
+  existing_non_bash_allow=$(jq -c '[.permissions.allow[]? | select(startswith("Bash") | not)]' ~/.claude/settings.json)
+  jq --argjson bash_allow "$repo_bash_allow" --argjson other "$existing_non_bash_allow" \
+    '.permissions.allow = ($bash_allow + $other | unique)' \
+    ~/.claude/settings.json > /tmp/claude_settings_merged.json
   mv /tmp/claude_settings_merged.json ~/.claude/settings.json
 else
   cp claude/settings.json ~/.claude/settings.json
