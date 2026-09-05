@@ -4,7 +4,7 @@ set -ex
 # Every path below is relative to the repo root.
 cd "$(dirname "$0")"
 
-for cmd in jq git; do
+for cmd in jq git npm; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "error: '$cmd' is required but not found on PATH" >&2; exit 1; }
 done
 
@@ -56,3 +56,20 @@ else
 fi
 cp claude/hooks/* ~/.claude/hooks/
 cp -r claude/skills/* ~/.claude/skills/
+
+# OpenCode
+opencode_dir="$HOME/.config/opencode"
+mkdir -p "$opencode_dir/plugins"
+if [ -f "$opencode_dir/opencode.jsonc" ]; then
+  tmp=$(mktemp)
+  jq --slurpfile repo opencode/opencode.jsonc '
+    .permission.bash = ($repo[0].permission.bash + ((.permission.bash // {}) | to_entries | map(select($repo[0].permission.bash[.key] == null)) | from_entries))
+  ' "$opencode_dir/opencode.jsonc" > "$tmp"
+  mv "$tmp" "$opencode_dir/opencode.jsonc"
+else
+  cp opencode/opencode.jsonc "$opencode_dir/opencode.jsonc"
+fi
+cp opencode/package.json "$opencode_dir/package.json"
+cp opencode/package-lock.json "$opencode_dir/package-lock.json"
+cp -r opencode/plugins/* "$opencode_dir/plugins/"
+npm ci --prefix "$opencode_dir"

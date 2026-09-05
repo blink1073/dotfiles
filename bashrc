@@ -199,9 +199,17 @@ function gdeltag() {
 
 function gclone() {
     local user=$(git config  github.user)
-    local name=$2${3:+-$3}
-    git clone git@github.com:$user/$2 $name || return 1
-    cd $name
+    local name=$2
+    local dest=$name
+    local target=$name
+    if [ -n "$3" ]; then
+        dest="$3"
+        target=$(basename "$3")
+        mkdir -p "$(dirname "$3")"
+        cd "$(dirname "$3")"
+    fi
+    git clone git@github.com:$user/$2 $target || return 1
+    cd $target
     git remote add upstream git@github.com:$1/$2.git
     default_branch=$(get_default_branch)
     git pull upstream ${default_branch} -X theirs
@@ -209,7 +217,7 @@ function gclone() {
     if [ -f .pre-commit-config.yaml ]; then
         uv tool run pre-commit install
     fi
-    workon $name
+    workon $dest
     bell
 }
 

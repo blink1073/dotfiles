@@ -15,14 +15,8 @@ first, then apply whatever format-specific rules the calling skill adds.
 
 ## Drafting
 
-Draft the actual prose with the `ollama_run` MCP tool rather than writing it
-yourself: pass the content to convey as the prompt and this file's Checklist,
-Budgets, Depth, and Common Mistakes sections as the system prompt. If the
-tool is unavailable, draft directly instead.
-
-Then review the returned draft against every section below yourself and fix
-what it missed before using the text. The tool call offloads drafting
-tokens; the review is still yours.
+Draft directly, then review the result against every section below and fix
+what it missed before using the text.
 
 ## Checklist
 

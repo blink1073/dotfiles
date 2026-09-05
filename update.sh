@@ -38,3 +38,12 @@ mkdir -p claude/skills
 # Mirror, so a skill deleted from ~/.claude is deleted here too.
 # Excludes evg/evergreen skills: they're work-machine-only, not for the public repo.
 rsync -a --delete --exclude='*evg*' --exclude='*evergreen*' ~/.claude/skills/ claude/skills/
+
+# OpenCode
+opencode_dir="$HOME/.config/opencode"
+mkdir -p opencode/plugins
+jq '{ "$schema": (."$schema"), permission: { bash: .permission.bash } }' "$opencode_dir/opencode.jsonc" > opencode/opencode.jsonc
+cp "$opencode_dir/package.json" opencode/package.json
+cp "$opencode_dir/package-lock.json" opencode/package-lock.json
+# Mirror, so a plugin deleted from ~/.config/opencode is deleted here too.
+rsync -a --delete "$opencode_dir/plugins/" opencode/plugins/
