@@ -22,6 +22,12 @@ The repo is public. When asked to commit changes to `~/.claude`:
    them.
 4. Ask before pushing to origin.
 
+## Plans
+
+Write implementation plans to `.plans/` at the repo root (e.g.
+`.plans/YYYY-MM-DD-<feature>.md`). The directory is gitignored, so plans stay
+local to the repo rather than being committed.
+
 ## GitHub Actions Security
 
 When editing GitHub Actions workflow files (`.github/workflows/*.yml`):
