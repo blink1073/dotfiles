@@ -22,11 +22,15 @@ The repo is public. When asked to commit changes to `~/.claude`:
    them.
 4. Ask before pushing to origin.
 
-## Plans
+## Ticket work products
 
-Write implementation plans to `.plans/` at the repo root (e.g.
-`.plans/YYYY-MM-DD-<feature>.md`). The directory is gitignored, so plans stay
+Give each ticket a top-level `PLAN.md` and `REVIEW.md` at the repo root.
+One ticket is in progress at a time, so a single pair of files is enough.
+Both are gitignored through the user-level `.gitignore`, so they stay
 local to the repo rather than being committed.
+
+`PLAN.md` holds a ticket's implementation plan. `REVIEW.md` holds the
+review from a local bot review.
 
 ## GitHub Actions Security
 

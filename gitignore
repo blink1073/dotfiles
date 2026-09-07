@@ -37,7 +37,8 @@ __pycache__
 .superpowers/
 **/superpowers/plans/
 **/superpowers/specs/
-.plans/
+/PLAN.md
+/REVIEW.md
 
 # Nested git worktrees
 **/worktrees/
