@@ -81,7 +81,8 @@ REVIEW.md.
    ticket is needed, print the general requirements and hand off so the
    user can file it (see `designing`'s orchestrator mode). Keep working
    the original ticket regardless of the answer.
-5. **Hand off for review.** Review is staged.
+5. **Hand off for review.** Review is staged; this skill ends at the
+   fork PR.
    - **Review - Local Bot (heavy).** Delegate to the `reviewer`
      sub-agent, which writes REVIEW.md at the ticket path. The conductor
      reads it and addresses it before moving on.
@@ -92,12 +93,9 @@ REVIEW.md.
      fork**. **REQUIRED SUB-SKILL:** `pr-creation` governs opening it
      (which uses `pr-description` for the content) — don't invoke
      `pr-description` directly and skip `pr-creation`'s mechanics.
-   - **Review - Automated tools / Review - Team (light).** Push toward
-     the upstream PR, clear bot and automated-tool comments, mark the
-     PR ready for review, and coordinate team comments with the user.
-     **REQUIRED SUB-SKILL:** `pr-review-response` governs addressing
-     review comments — the user is responsible for every response but
-     may ask the bot to review before answering.
+   - **Review - Upstream and Team (light).** After the fork PR, stop.
+     The upstream PR, bots, automated tools, and team review run in a
+     separate session: **REQUIRED SUB-SKILL:** `code-review`.
 
 ## Common Mistakes
 
