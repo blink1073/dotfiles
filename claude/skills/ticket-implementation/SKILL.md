@@ -77,10 +77,10 @@ REVIEW.md.
    status updates) not covered by a more specific skill, **REQUIRED
    SUB-SKILL:** `prose` governs it directly.
 4. **Scope discipline.** If something unrelated to the ticket surfaces,
-   don't fix it. Flag it and offer to draft a ticket for it, using
-   whichever drafting skill (`jira-ticket` or `github-issue`) matches
-   the system you were invoked for. Keep working the original ticket
-   regardless of the answer.
+   don't fix it. Flag it: offer to draft a ticket for it. If a new
+   ticket is needed, print the general requirements and hand off so the
+   user can file it (see `designing`'s orchestrator mode). Keep working
+   the original ticket regardless of the answer.
 5. **Hand off for review.** Review is staged.
    - **Review - Local Bot (heavy).** Delegate to the `reviewer`
      sub-agent, which writes REVIEW.md at the ticket path. The conductor
