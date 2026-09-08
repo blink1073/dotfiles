@@ -49,15 +49,70 @@ they stay local (see `~/.claude/CLAUDE.md`).
 planning session drafts PLAN.md; the `reviewer` sub-agent drafts
 REVIEW.md.
 
+### Ticket ledger and notes
+
+Alongside those, each checkout keeps two files under
+`~/workspace/tickets`, named by the checkout's basename (e.g.
+`~/workspace/tickets/ledgers/my-repo.md`):
+
+- `ledgers/<checkout-dir>.md` — the ticket **ledger**. Skills
+  auto-manage it. It carries the ticket's metadata (system, key, type,
+  title) plus a **session checklist** with one item per phase of the
+  workflow. Check an item off as its phase completes, so progress
+  survives session boundaries.
+- `notes/<checkout-dir>.md` — your own note file. You write to it
+  directly; skills leave it alone except to create it empty on first
+  use.
+
+Both directories exist under `~/workspace/tickets`, outside any git
+repo, so the ledger and notes are never committed. The ledger is
+reset/re-initialized at the start of each ticket in that checkout.
+
+Ledger format:
+
+```markdown
+# Ledger: <checkout-dir>
+
+Git checkout: `<abs path>`
+System: `JIRA`/`GitHub`
+Key: `PROJ-1234`
+Type: `bug`/`feature`
+Title: `<title>`
+Plan: `<repo>/PLAN.md`
+Review: `<repo>/REVIEW.md`
+Ticket: `<URL>`
+Fork PR: `<URL>`
+Upstream PR: `<URL>`
+
+## Session checklist
+- [ ] Planning — PLAN.md written
+- [ ] Implementing — tasks complete and verified
+- [ ] Review - Local Bot — REVIEW.md written and addressed
+- [ ] Review - Self — draft fork PR opened
+- [ ] Review - Upstream and Team — PR driven to merge
+```
+
+Fill the link fields as each becomes available: **Ticket** from the
+connector or `gh issue view` when the ticket is resolved, **Fork PR**
+when the draft PR to your fork is opened, and **Upstream PR** when the
+upstream PR is opened. Leave a field blank until its link exists; `n/a`
+where there is no such artifact (e.g. no separate fork).
+
 ## Workflow
 
-1. **Bug path — reproduce first.** If this is a bug, write a test that
+1. **Set up the ledger and notes.** At the start of work on a ticket in
+   a checkout, (re)write `ledgers/<checkout-dir>.md` with the ticket's
+   metadata (including the **Ticket** link once resolved) and a fresh
+   session checklist, and create `notes/<checkout-dir>.md` empty if it
+   does not exist. Flip a checklist item to `[x]` as its phase completes
+   and record the relevant PR link alongside (steps below).
+2. **Bug path — reproduce first.** If this is a bug, write a test that
    reproduces it and confirms it fails, before any other work.
    **REQUIRED SUB-SKILL:** `test-driven-development` governs the
    RED-GREEN-REFACTOR cycle from here on, for both the bug and feature
    paths. If the bug/feature determination is missing, ask before
    proceeding.
-2. **Resolve the plan.** The plan is a local markdown file at the repo
+3. **Resolve the plan.** The plan is a local markdown file at the repo
    root, `PLAN.md`. It is not a gist.
    - PLAN.md exists: read it and treat it as the implementation plan.
    - PLAN.md is missing: in the **Planning** phase (the heavy top-level
@@ -69,30 +124,35 @@ REVIEW.md.
      > No PLAN.md at the repo root. Run the Planning phase on the heavy
      > model (GLM 5.2) in a separate session, save the plan to PLAN.md,
      > then resume here. I'll wait.
-3. **Implement.** **REQUIRED SUB-SKILL:** `executing-plans` to work
+4. **Implement.** **REQUIRED SUB-SKILL:** `executing-plans` to work
    the plan task by task, with `test-driven-development` governing how
    each piece of code gets written. Where the work adds or edits a
    docstring, **REQUIRED SUB-SKILL:** `docstrings` governs it. For any
    other prose produced along the way (commit messages, code comments,
    status updates) not covered by a more specific skill, **REQUIRED
-   SUB-SKILL:** `prose` governs it directly.
-4. **Scope discipline.** If something unrelated to the ticket surfaces,
+   SUB-SKILL:** `prose` governs it directly. When the plan is fully
+   implemented and verified, check off **Implementing** in the ledger.
+5. **Scope discipline.** If something unrelated to the ticket surfaces,
    don't fix it. Flag it: offer to draft a ticket for it. If a new
    ticket is needed, print the general requirements and hand off so the
    user can file it (see `designing`'s orchestrator mode). Keep working
    the original ticket regardless of the answer.
-5. **Hand off for review.** Review is staged; this skill ends at the
+6. **Hand off for review.** Review is staged; this skill ends at the
    fork PR.
    - **Review - Local Bot (heavy).** Delegate to the `reviewer`
      sub-agent, which writes REVIEW.md at the ticket path. The conductor
-     reads it and addresses it before moving on.
+     reads it and addresses it before moving on. When REVIEW.md is
+     written and addressed, check off **Review - Local Bot** in the
+     ledger.
    - **Review - Self (light).** Before opening the draft PR to the
      fork, offer to make a targeted evergreen patch build — ask the
      user rather than triggering a CI build unprompted. Then open a
      draft PR to the user's fork — for security bugs, a **private GHSA
      fork**. **REQUIRED SUB-SKILL:** `pr-creation` governs opening it
      (which uses `pr-description` for the content) — don't invoke
-     `pr-description` directly and skip `pr-creation`'s mechanics.
+     `pr-description` directly and skip `pr-creation`'s mechanics. When
+     the draft PR is open, record its **Fork PR** URL in the ledger and
+     check off **Review - Self**.
    - **Review - Upstream and Team (light).** After the fork PR, stop.
      The upstream PR, bots, automated tools, and team review run in a
      separate session: **REQUIRED SUB-SKILL:** `code-review`.
@@ -111,3 +171,5 @@ REVIEW.md.
 | Re-explaining a sub-skill's process inline instead of invoking it | Invoke the sub-skill; don't duplicate its process here |
 | Invoking `pr-description` directly to open the PR | Invoke `pr-creation` instead — it handles the description via `pr-description` itself |
 | Skipping `/review` or addressing review comments without user sign-off | Run the staged review loop; the user owns responses |
+| Naming the ledger/notes file by ticket key or repo name instead of checkout dir | Use the checkout basename: `~/workspace/tickets/ledgers/<checkout-dir>.md` |
+| Leaving the session checklist unchecked as phases finish | Flip each item to `[x]` when its phase completes; the ledger is the durable progress record |

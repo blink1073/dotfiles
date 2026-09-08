@@ -21,6 +21,12 @@ this plan."
 3. If you have concerns, raise them with the user before starting. Do
    not guess past a gap.
 4. If the plan is sound, create a todo list with one entry per task.
+   The ticket ledger at
+   `~/workspace/tickets/ledgers/<checkout-dir>.md` should already carry
+   this ticket's metadata and a fresh session checklist (set up by the
+   Planning session); if it doesn't, initialize it. You may jot progress
+   in `~/workspace/tickets/notes/<checkout-dir>.md`, but leave the notes
+   file's content to the user.
 
 ## Step 2: Execute the tasks
 
@@ -33,8 +39,10 @@ For each task:
 
 ## Step 3: Finish
 
-When all tasks are complete and verified, stop coding and hand off to
-the review stage. Follow the staged review loop in
+When all tasks are complete and verified, check off **Implementing** in
+the ticket ledger
+(`~/workspace/tickets/ledgers/<checkout-dir>.md`), stop coding, and hand
+off to the review stage. Follow the staged review loop in
 `ticket-implementation` (Review - Local Bot, then Self, then Automated
 tools, then Team). Do not start the next phase on your own.
 

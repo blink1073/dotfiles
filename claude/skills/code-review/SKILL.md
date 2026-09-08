@@ -21,15 +21,21 @@ review before answering.
 - The ticket. Infer the PR rather than asking: get the upstream repo
   with `git remote get-url origin`, the branch with
   `git rev-parse --abbrev-ref HEAD`, then `gh pr view --json
-  url,number,headRefName,baseRefName` for the PR by branch. The fork and
-  upstream PRs both follow from this.
+  url,number,headRefName,baseRefName` for the PR by branch. Prefer the
+  **upstream PR** if one exists for the branch; otherwise use the
+  **draft fork PR** — carry whichever exists into the rest of the
+  workflow, rather than re-opening a PR that is already there.
 - The upstream target branch.
 
 ## Workflow
 
-1. **Open a PR against upstream.** Push the fork branch (or the draft
-   PR) toward upstream and open the PR. Use `pr-description` for the
-   content.
+1. **Open a PR against upstream, or reuse the upstream PR if one already
+   exists.** If the upstream PR for this branch is already open, use it;
+   otherwise push the fork branch (or the draft PR) toward upstream and
+   open the PR. Use `pr-description` for the content. Record the
+   **Upstream PR** URL in the ticket ledger at
+   `~/workspace/tickets/ledgers/<checkout-dir>.md` (and check off the
+   relevant item, per `ticket-implementation`).
 2. **Clear bots and automated tools.** Address the CI and bot comments
    as they arrive, using `pr-review-response`. Fix what fails; do not
    suppress a real failure.
@@ -58,6 +64,7 @@ Never answer a review comment in a way the user has not approved.
 |---|---|
 | Continuing the implementing session into upstream review | Start a new session; this skill is the entry point |
 | Asking the user for the PR link | Infer it from the branch with `gh pr view` |
+| Opening a second upstream PR when one already exists for the branch | Use the existing upstream PR; only open one if none exists |
 | Suppressing or "fixing" an automated failure by weakening the test | Address the real cause; keep the check honest |
 | Marking the PR ready before checks are clear | Clear bots and automated tools first |
 | Answering a review comment without user approval | The user owns every response; you draft, they decide |

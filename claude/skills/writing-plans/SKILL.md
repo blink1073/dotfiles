@@ -139,6 +139,15 @@ not as a subagent dispatch.
 
 Fix issues inline; add a task for any uncovered requirement.
 
+## Ticket ledger
+
+As the first session in the workflow, initialize
+`~/workspace/tickets/ledgers/<checkout-dir>.md` (see
+`ticket-implementation` for the format) with the ticket's metadata and
+a fresh session checklist, and create
+`~/workspace/tickets/notes/<checkout-dir>.md` if it does not exist.
+After writing the plan, check off **Planning** in the ledger.
+
 ## Execution handoff
 
 Write `PLAN.md`, confirm the user has it, then stop. Do not begin
