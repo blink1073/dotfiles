@@ -13,8 +13,9 @@ This skill orchestrates the post-fork review phase.
 
 Carry a ticket from the fork PR to a merged, reviewed change. Invoked in
 a new session after `ticket-implementation` ends at the fork PR. Runs on
-the light model; the user owns every PR response but may ask the bot to
-review before answering.
+the light model; the user owns every PR response. Do not invoke the
+local bot reviewer (`reviewer` sub-agent, REVIEW.md) unless the user
+asks; let the team review stand on its own.
 
 ## Inputs
 
@@ -44,7 +45,9 @@ review before answering.
    the PR link (see `jira-ticket` for the transition).
 4. **Coach team review.** The team reviews; the user coordinates with
    the bot. `pr-review-response` governs each reply. The user decides
-   on every response; the bot reviews and drafts, but does not decide.
+   on every response. Only run the local bot reviewer (`reviewer`
+   sub-agent, producing REVIEW.md) if the user explicitly asks; otherwise
+   leave team review to the team.
 5. **Close.** Comments addressed, PR merged, JIRA to Closed.
 
 ## Stop and ask
