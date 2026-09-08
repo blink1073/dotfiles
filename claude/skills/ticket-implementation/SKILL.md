@@ -57,9 +57,11 @@ Alongside those, each checkout keeps two files under
 
 - `ledgers/<checkout-dir>.md` — the ticket **ledger**. Skills
   auto-manage it. It carries the ticket's metadata (system, key, type,
-  title) plus a **session checklist** with one item per phase of the
-  workflow. Check an item off as its phase completes, so progress
-  survives session boundaries.
+  title), a **session checklist** with one item per phase of the
+  workflow, and the **next suggested user action** so a fresh session
+  knows what to do. Check an item off as its phase completes, so
+  progress survives session boundaries; update the next action whenever
+  a phase completes or blocks.
 - `notes/<checkout-dir>.md` — your own note file. You write to it
   directly; skills leave it alone except to create it empty on first
   use.
@@ -84,6 +86,11 @@ Ticket: `<URL>`
 Fork PR: `<URL>`
 Upstream PR: `<URL>`
 
+## Next suggested user action
+
+`<short, imperative next step>` — e.g. run the Planning phase, open the
+draft fork PR, drive the upstream PR to merge.
+
 ## Session checklist
 - [ ] Planning — PLAN.md written
 - [ ] Implementing — tasks complete and verified
@@ -98,14 +105,20 @@ when the draft PR to your fork is opened, and **Upstream PR** when the
 upstream PR is opened. Leave a field blank until its link exists; `n/a`
 where there is no such artifact (e.g. no separate fork).
 
+Keep **Next suggested user action** current: rewrite it whenever a phase
+completes or the work pauses, so a later session (or the user) picks up
+exactly there. Leave it blank on first initialization before the first
+phase starts.
+
 ## Workflow
 
 1. **Set up the ledger and notes.** At the start of work on a ticket in
    a checkout, (re)write `ledgers/<checkout-dir>.md` with the ticket's
    metadata (including the **Ticket** link once resolved) and a fresh
    session checklist, and create `notes/<checkout-dir>.md` empty if it
-   does not exist. Flip a checklist item to `[x]` as its phase completes
-   and record the relevant PR link alongside (steps below).
+   does not exist. Flip a checklist item to `[x]` as its phase completes,
+   record the relevant PR link alongside (steps below), and update
+   **Next suggested user action** to the next phase.
 2. **Bug path — reproduce first.** If this is a bug, write a test that
    reproduces it and confirms it fails, before any other work.
    **REQUIRED SUB-SKILL:** `test-driven-development` governs the
@@ -143,7 +156,7 @@ where there is no such artifact (e.g. no separate fork).
      sub-agent, which writes REVIEW.md at the ticket path. The conductor
      reads it and addresses it before moving on. When REVIEW.md is
      written and addressed, check off **Review - Local Bot** in the
-     ledger.
+     ledger and set the next action to open the draft fork PR.
    - **Review - Self (light).** Before opening the draft PR to the
      fork, offer to make a targeted evergreen patch build — ask the
      user rather than triggering a CI build unprompted. Then open a
@@ -151,11 +164,13 @@ where there is no such artifact (e.g. no separate fork).
      fork**. **REQUIRED SUB-SKILL:** `pr-creation` governs opening it
      (which uses `pr-description` for the content) — don't invoke
      `pr-description` directly and skip `pr-creation`'s mechanics. When
-     the draft PR is open, record its **Fork PR** URL in the ledger and
-     check off **Review - Self**.
+     the draft PR is open, record its **Fork PR** URL in the ledger,
+     check off **Review - Self**, and set the next action to start the
+     code-review session.
    - **Review - Upstream and Team (light).** After the fork PR, stop.
      The upstream PR, bots, automated tools, and team review run in a
-     separate session: **REQUIRED SUB-SKILL:** `code-review`.
+     separate session: **REQUIRED SUB-SKILL:** `code-review`. Set the
+     next action to start that session.
 
 ## Common Mistakes
 
