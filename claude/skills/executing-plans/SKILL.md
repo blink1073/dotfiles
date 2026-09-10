@@ -24,8 +24,11 @@ this plan."
    The ticket ledger at
    `~/workspace/tickets/ledgers/<checkout-dir>.md` should already carry
    this ticket's metadata and a fresh session checklist (set up by the
-   Planning session); if it doesn't, initialize it. You may jot progress
-   in `~/workspace/tickets/notes/<checkout-dir>.md`, but leave the notes
+   Planning session); if it does not exist, create it (and
+   `~/workspace/tickets/notes/<checkout-dir>.md` and the `ledgers/`+
+   `notes/` directories) now, using the `ticket-implementation` format.
+   You may jot progress in
+   `~/workspace/tickets/notes/<checkout-dir>.md`, but leave the notes
    file's content to the user.
 
 ## Step 2: Execute the tasks

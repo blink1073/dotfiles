@@ -113,12 +113,14 @@ phase starts.
 ## Workflow
 
 1. **Set up the ledger and notes.** At the start of work on a ticket in
-   a checkout, (re)write `ledgers/<checkout-dir>.md` with the ticket's
-   metadata (including the **Ticket** link once resolved) and a fresh
-   session checklist, and create `notes/<checkout-dir>.md` empty if it
-   does not exist. Flip a checklist item to `[x]` as its phase completes,
-   record the relevant PR link alongside (steps below), and update
-   **Next suggested user action** to the next phase.
+   a checkout, create `~/workspace/tickets/ledgers/` and
+   `~/workspace/tickets/notes/` if they do not exist, then (re)write
+   `ledgers/<checkout-dir>.md` with the ticket's metadata (including the
+   **Ticket** link once resolved) and a fresh session checklist, and
+   create `notes/<checkout-dir>.md` empty if it does not exist. Flip a
+   checklist item to `[x]` as its phase completes, record the relevant
+   PR link alongside (steps below), and update **Next suggested user
+   action** to the next phase.
 2. **Bug path — reproduce first.** If this is a bug, write a test that
    reproduces it and confirms it fails, before any other work.
    **REQUIRED SUB-SKILL:** `test-driven-development` governs the

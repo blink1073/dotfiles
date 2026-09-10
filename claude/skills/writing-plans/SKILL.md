@@ -144,9 +144,10 @@ Fix issues inline; add a task for any uncovered requirement.
 As the first session in the workflow, initialize
 `~/workspace/tickets/ledgers/<checkout-dir>.md` (see
 `ticket-implementation` for the format) with the ticket's metadata and
-a fresh session checklist, and create
-`~/workspace/tickets/notes/<checkout-dir>.md` if it does not exist.
-After writing the plan, check off **Planning** in the ledger.
+a fresh session checklist. Create `~/workspace/tickets/ledgers/` and
+`~/workspace/tickets/notes/` if they do not exist; create
+`notes/<checkout-dir>.md` if it does not exist. After writing the plan,
+check off **Planning** in the ledger.
 
 ## Execution handoff
 
