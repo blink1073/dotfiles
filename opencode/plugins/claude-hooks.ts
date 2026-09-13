@@ -103,7 +103,7 @@ export const ClaudeHooks: Plugin = async () => {
     "chat.message": async (_input, output) => {
       const text = extractUserText(output.parts)
       if (!pendingPrefix) return
-      if (isApproval(text, pendingPrefix)) pendingPrefix = undefined
+      if (!isApproval(text, pendingPrefix)) pendingPrefix = undefined
     },
   }
 }
