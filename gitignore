@@ -33,6 +33,7 @@ __pycache__
 .envrc
 .vscode
 .claude
+.opencode
 .idea
 .superpowers/
 **/superpowers/plans/

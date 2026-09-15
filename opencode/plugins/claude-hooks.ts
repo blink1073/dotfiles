@@ -63,6 +63,15 @@ function isApproval(text: string, prefix: string): boolean {
   return normalized === confirmWord(prefix)
 }
 
+function writesComment(command: string): boolean {
+  const c = command.trim()
+  if (/\bgh\s+(pr|issue)\s+comment\b/.test(c)) return true
+  if (/\bgh\s+pr\s+review\b/.test(c) && /\s(--comment\b|--body\b|--request-changes\b|-b\b)/.test(c)) return true
+  if (!/\bgh\s+api\b/.test(c)) return false
+  if (!/\/(pulls|issues)\/[^\s/]+\/comments/.test(c)) return false
+  return /(body\s*=)|-X\s+(POST|PATCH|DELETE)|--method\s+[= ]?(POST|PATCH|DELETE)|\s-d\b|\s--data\b|\s--input\b/.test(c)
+}
+
 export const ClaudeHooks: Plugin = async () => {
   let pendingPrefix: string | undefined
 
@@ -76,6 +85,12 @@ export const ClaudeHooks: Plugin = async () => {
         typeof workdir === "string" && workdir.length > 0
           ? `cd ${JSON.stringify(workdir)} && ${command}`
           : command
+
+      if (writesComment(command)) {
+        throw new Error(
+          "Blocked: posting comments to a pull request or issue is disabled by config. Share review feedback with the user in chat instead of commenting on the PR.",
+        )
+      }
 
       for (const { script, gate } of PYTHON_HOOKS) {
         if (!gate.test(effective)) continue
