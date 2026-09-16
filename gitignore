@@ -43,3 +43,4 @@ __pycache__
 
 # Nested git worktrees
 **/worktrees/
+.worktrees

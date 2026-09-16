@@ -35,8 +35,10 @@ asks; let the team review stand on its own.
    otherwise push the fork branch (or the draft PR) toward upstream and
    open the PR. Use `pr-description` for the content. Record the
    **Upstream PR** URL in the ticket ledger at
-   `~/workspace/tickets/ledgers/<checkout-dir>.md` (and check off the
-   relevant item, per `ticket-implementation`).
+   `~/workspace/tickets/ledgers/<checkout-dir>.md` (creating the ledger
+   and its `ledgers/`+`notes/` directories if it does not exist, using
+   the `ticket-implementation` format) and check off the
+   relevant item, per `ticket-implementation`.
 2. **Clear bots and automated tools.** Address the CI and bot comments
    as they arrive, using `pr-review-response`. Fix what fails; do not
    suppress a real failure.

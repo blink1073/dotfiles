@@ -11,14 +11,7 @@ const PYTHON_HOOKS = [
   { script: "check_git_commit.py", gate: /\bgit\s+commit\b/ },
 ]
 
-const ALWAYS_BLOCK_PREFIXES = ["gh pr comment", "gh pr merge"]
-
-const CONFIRM_PREFIXES = ["gh pr create", "git push", "git add", "git commit"]
-
-function confirmWord(prefix: string): string {
-  const key = prefix.startsWith("git ") ? prefix.slice("git ".length) : prefix.slice("gh pr ".length)
-  return key
-}
+const GUARDED_PREFIXES = ["gh pr create", "git push"]
 
 function runHook(script: string, command: string): Promise<string | undefined> {
   return new Promise((resolve) => {
@@ -42,25 +35,11 @@ function runHook(script: string, command: string): Promise<string | undefined> {
 function guardedPrefix(command: string): string | undefined {
   for (const segment of command.split(/&&|\|\||;|\|/)) {
     const trimmed = segment.trim()
-    for (const prefix of [...ALWAYS_BLOCK_PREFIXES, ...CONFIRM_PREFIXES]) {
+    for (const prefix of GUARDED_PREFIXES) {
       if (trimmed === prefix || trimmed.startsWith(prefix + " ")) return prefix
     }
   }
   return undefined
-}
-
-function extractUserText(parts: Array<{ type?: string; text?: string }>): string {
-  return parts
-    .filter((p) => p.type === "text" && p.text)
-    .map((p) => p.text)
-    .join("\n")
-}
-
-function isApproval(text: string, prefix: string): boolean {
-  const normalized = text.trim().toLowerCase()
-  if (normalized === "" || normalized.length > 40) return false
-  if (normalized === "yes" || normalized === "y") return true
-  return normalized === confirmWord(prefix)
 }
 
 function writesComment(command: string): boolean {
@@ -73,7 +52,9 @@ function writesComment(command: string): boolean {
 }
 
 export const ClaudeHooks: Plugin = async () => {
-  let pendingPrefix: string | undefined
+  let userMessages = 0
+  const seenUserMessages = new Set<string>()
+  const blockedAt = new Map<string, number>()
 
   return {
     "tool.execute.before": async (input, output) => {
@@ -100,25 +81,22 @@ export const ClaudeHooks: Plugin = async () => {
 
       const prefix = guardedPrefix(command)
       if (!prefix) return
-
-      if (ALWAYS_BLOCK_PREFIXES.includes(prefix)) {
-        throw new Error(`${prefix} is blocked and cannot be run by the agent.`)
+      const blocked = blockedAt.get(prefix)
+      if (blocked === undefined || blocked >= userMessages) {
+        blockedAt.set(prefix, userMessages)
+        throw new Error(
+          `${prefix} is blocked pending explicit user confirmation. Do not retry yet: show the exact command to the user and ask them to confirm. After the user replies in chat, retry the command once.`,
+        )
       }
-
-      if (pendingPrefix === prefix) {
-        pendingPrefix = undefined
-        return
-      }
-
-      pendingPrefix = prefix
-      throw new Error(
-        `${prefix} is blocked pending your confirmation. Show the exact command to the user and ask them to approve it by replying "yes" or "${confirmWord(prefix)}".`,
-      )
+      blockedAt.delete(prefix)
     },
-    "chat.message": async (_input, output) => {
-      const text = extractUserText(output.parts)
-      if (!pendingPrefix) return
-      if (!isApproval(text, pendingPrefix)) pendingPrefix = undefined
+    event: async ({ event }) => {
+      if (event.type !== "message.updated") return
+      const info = (event.properties as { info?: { id?: string; role?: string; summary?: unknown } }).info
+      if (!info || info.role !== "user" || info.summary !== undefined || typeof info.id !== "string") return
+      if (seenUserMessages.has(info.id)) return
+      seenUserMessages.add(info.id)
+      userMessages += 1
     },
   }
 }
