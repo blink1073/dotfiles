@@ -69,6 +69,7 @@ if [ -f "$opencode_dir/opencode.jsonc" ]; then
 else
   cp opencode/opencode.jsonc "$opencode_dir/opencode.jsonc"
 fi
+cp opencode/tui.json "$opencode_dir/tui.json"
 cp opencode/package.json "$opencode_dir/package.json"
 cp opencode/package-lock.json "$opencode_dir/package-lock.json"
 cp -r opencode/plugins/* "$opencode_dir/plugins/"

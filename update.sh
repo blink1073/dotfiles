@@ -43,6 +43,7 @@ rsync -a --delete --exclude='*evg*' --exclude='*evergreen*' ~/.claude/skills/ cl
 opencode_dir="$HOME/.config/opencode"
 mkdir -p opencode/plugins
 jq '{ "$schema": (."$schema"), permission: { bash: .permission.bash } }' "$opencode_dir/opencode.jsonc" > opencode/opencode.jsonc
+cp "$opencode_dir/tui.json" opencode/tui.json
 cp "$opencode_dir/package.json" opencode/package.json
 cp "$opencode_dir/package-lock.json" opencode/package-lock.json
 # Mirror, so a plugin deleted from ~/.config/opencode is deleted here too.
