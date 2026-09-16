@@ -349,6 +349,26 @@ EOS
 
 workon() {
     local name=$1
+    if [ ! -d "$HOME/workspace/$name" ] && [[ "$name" == *[0-9] ]]; then
+        # Treat as a ticket suffix (e.g. "PYTHON-5555") and match workspace
+        # directories ending with it.
+        command -v setopt >/dev/null 2>&1 && setopt local_options null_glob
+        local -a matches=()
+        local match
+        for match in "$HOME/workspace/"*"$name"; do
+            [ -d "$match" ] || continue
+            matches+=("${match#$HOME/workspace/}")
+        done
+        if [ ${#matches[@]} -eq 0 ]; then
+            echo "ERROR: no workspace directories end with \"$name\"!"
+            return 1
+        elif [ ${#matches[@]} -gt 1 ]; then
+            echo "ERROR: multiple workspace directories end with \"$name\":"
+            printf '  %s\n' "${matches[@]}"
+            return 1
+        fi
+        name=${matches[@]:0:1}
+    fi
     if [ ! -d $HOME/workspace/$name ];
     then
         echo "ERROR: \"$HOME/workspace/$name\" not found!"
