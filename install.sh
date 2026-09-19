@@ -94,3 +94,12 @@ sandbox_bin="$HOME/.local/bin"
 mkdir -p "$sandbox_bin"
 cp sandbox/podbox sandbox/opencode-sandbox "$sandbox_bin/"
 chmod +x "$sandbox_bin/podbox" "$sandbox_bin/opencode-sandbox"
+
+# Workspace prune cron (runs hourly, does its work at most once a day)
+cp cron/workspace-prune "$sandbox_bin/workspace-prune"
+chmod +x "$sandbox_bin/workspace-prune"
+if command -v crontab >/dev/null 2>&1; then
+  # Replace any previous entry so re-running install.sh stays idempotent.
+  cron_line='15 * * * * $HOME/.local/bin/workspace-prune'
+  (crontab -l 2>/dev/null | grep -Fv 'workspace-prune'; echo "$cron_line") | crontab -
+fi

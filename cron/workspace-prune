@@ -1,0 +1,310 @@
+#!/usr/bin/env bash
+# Hourly cron entry point that reclaims space from ~/workspace and caches.
+#
+# The real work runs at most once per calendar day; later invocations bail.
+# Pass --force to ignore the daily stamp, or --dry-run to log the actions it
+# would take without touching anything. Intended for macOS bash 3.2 and cron's
+# minimal environment, hence the explicit PATH and portable find/date usage.
+
+set -uo pipefail
+
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+
+DRY_RUN=0
+FORCE=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=1 ;;
+        --force) FORCE=1 ;;
+        *) echo "workspace-prune: unknown argument: $arg" >&2; exit 2 ;;
+    esac
+done
+
+workspace="$HOME/workspace"
+drafts_dir="$workspace/drafts"
+plans_dir="$workspace/plans"
+state_dir="${XDG_CACHE_HOME:-$HOME/.cache}/workspace-prune"
+stamp_file="$state_dir/last-run"
+log_file="$state_dir/run.log"
+
+mkdir -p "$state_dir"
+
+today=$(date +%F)
+# Dry runs are free: they neither consume nor respect the daily stamp.
+if [ "$DRY_RUN" -eq 0 ]; then
+    if [ "$FORCE" -ne 1 ] && [ -f "$stamp_file" ] && [ "$(cat "$stamp_file")" = "$today" ]; then
+        exit 0
+    fi
+    echo "$today" > "$stamp_file"
+fi
+
+# Capture the run in a buffer. A real run only publishes it to the log when it
+# actually attempted a prune; dry runs print it to the terminal instead.
+pruned=0
+exec 3>&1
+buf_file="$state_dir/last-run.$$.log"
+: > "$buf_file"
+exec >"$buf_file" 2>&1
+
+log() { echo "$*"; }
+
+# Drop log blocks older than 7 days. Each block begins at a "begin" header
+# whose 4th field is an ISO date, so blocks can be compared lexicographically.
+trim_log() {
+    local cutoff tmp
+    cutoff=$(date -d '7 days ago' +%F 2>/dev/null) || cutoff=$(date -v-7d +%F 2>/dev/null) || return 0
+    tmp="$log_file.tmp"
+    awk -v cutoff="$cutoff" '
+        /^=== workspace-prune begin / {
+            keep = (substr($4, 1, 10) >= cutoff)
+            if (keep) print
+            next
+        }
+        keep { print }
+    ' "$log_file" > "$tmp" && mv "$tmp" "$log_file"
+}
+
+# Run a command for real, or just print it under --dry-run.
+run() {
+    if [ "$DRY_RUN" -eq 1 ]; then
+        echo "[dry-run] $*"
+    else
+        "$@"
+    fi
+}
+
+# Echo the owner/repo slug for a GitHub remote URL, or return 1.
+github_slug() {
+    local url=$1
+    case "$url" in
+        *github.com*) ;;
+        *) return 1 ;;
+    esac
+    url=${url%.git}
+    url=${url#*github.com}
+    url=${url#:}
+    url=${url#/}
+    printf '%s\n' "$url"
+}
+
+# Echo the default branch name for a checkout, or return 1 if unknown.
+detect_default_branch() {
+    local dir=$1 slug=$2 b r
+    b=$(git -C "$dir" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null) || b=""
+    if [ -n "$b" ]; then
+        echo "${b#origin/}"
+        return 0
+    fi
+    for r in $(git -C "$dir" remote 2>/dev/null); do
+        b=$(git -C "$dir" symbolic-ref --quiet --short "refs/remotes/$r/HEAD" 2>/dev/null) || b=""
+        if [ -n "$b" ]; then
+            echo "${b#"$r"/}"
+            return 0
+        fi
+    done
+    if [ -n "$slug" ] && command -v gh >/dev/null 2>&1; then
+        b=$(gh repo view "$slug" --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null) || b=""
+        if [ -n "$b" ]; then
+            echo "$b"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# True if any of the given repo slugs has a merged PR for $1.
+merged_on_any() {
+    local branch=$1
+    shift
+    local slug n
+    for slug in "$@"; do
+        n=$(gh pr list --repo "$slug" --head "$branch" --state merged --json number --jq 'length' 2>/dev/null) || continue
+        [ "${n:-0}" -gt 0 ] && return 0
+    done
+    return 1
+}
+
+# Remove ticket checkouts whose directory name differs from the repo name once
+# every non-default branch has a merged PR and nothing is left uncommitted or
+# unpushed.
+prune_checkouts() {
+    command -v gh >/dev/null 2>&1 || { log "gh not found; skipping checkout pruning"; return 0; }
+    local dir base r url name slug default b
+    for dir in "$workspace"/*/; do
+        [ -d "$dir/.git" ] || continue
+        base=$(basename "${dir%/}")
+        local -a slugs=()
+        local name_match=0
+        for r in $(git -C "$dir" remote 2>/dev/null); do
+            url=$(git -C "$dir" remote get-url "$r" 2>/dev/null) || continue
+            [ -n "$url" ] || continue
+            name=${url##*/}
+            name=${name%.git}
+            [ "$name" = "$base" ] && name_match=1
+            slug=$(github_slug "$url" 2>/dev/null) && slugs+=("$slug")
+        done
+        if [ "$name_match" -eq 1 ]; then
+            log "keep $base: checkout name matches repo name"
+            continue
+        fi
+        if [ ${#slugs[@]} -eq 0 ]; then
+            log "keep $base: no GitHub remote"
+            continue
+        fi
+        if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
+            log "keep $base: uncommitted changes"
+            continue
+        fi
+        if [ -n "$(git -C "$dir" log --branches --not --remotes --oneline 2>/dev/null)" ]; then
+            log "keep $base: unpushed commits"
+            continue
+        fi
+        if ! default=$(detect_default_branch "$dir" "${slugs[0]}"); then
+            log "keep $base: could not determine default branch"
+            continue
+        fi
+        local -a branches=()
+        while IFS= read -r b; do
+            [ -n "$b" ] || continue
+            [ "$b" = "$default" ] && continue
+            branches+=("$b")
+        done < <(git -C "$dir" for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null)
+        local all_merged=1
+        for b in "${branches[@]}"; do
+            if ! merged_on_any "$b" "${slugs[@]}"; then
+                log "keep $base: branch '$b' has no merged PR"
+                all_merged=0
+                break
+            fi
+        done
+        [ "$all_merged" -eq 1 ] || continue
+        log "delete $base: name differs from repo and all branches have merged PRs"
+        pruned=1
+        run rm -rf "${dir%/}"
+    done
+}
+
+# True if $1 contains a file modified within the last $2 days.
+has_recent_files() {
+    local d=$1 days=$2
+    [ -n "$(find "$d" -type f -mtime -"$days" -print -quit 2>/dev/null)" ]
+}
+
+# True if a draft is a git checkout with a clean worktree and no commits
+# beyond its remotes (i.e. nothing worth keeping).
+draft_is_clean() {
+    local d=$1
+    [ -d "$d/.git" ] || return 1
+    [ -z "$(git -C "$d" status --porcelain 2>/dev/null)" ] || return 1
+    [ -z "$(git -C "$d" log --branches --not --remotes --oneline 2>/dev/null)" ] || return 1
+    return 0
+}
+
+# Move a draft's PLAN.md into ~/workspace/plans and drop the draft folder.
+move_plan() {
+    local d=$1 name=$2 dest
+    mkdir -p "$plans_dir"
+    dest="$plans_dir/$name.md"
+    if [ -e "$dest" ]; then
+        dest="$plans_dir/$name-$(date +%Y%m%d%H%M%S).md"
+    fi
+    log "move $d/PLAN.md -> $dest and delete draft $name"
+    pruned=1
+    if [ "$DRY_RUN" -eq 1 ]; then
+        echo "[dry-run] mv $d/PLAN.md $dest && rm -rf $d"
+    else
+        mv "$d/PLAN.md" "$dest" && rm -rf "$d"
+    fi
+}
+
+# Prune stale drafts: untouched for 30 days always goes; 7-30 days goes if it
+# has a plan (which is preserved) or if it is a clean, fully pushed checkout.
+prune_drafts() {
+    [ -d "$drafts_dir" ] || return 0
+    local d name
+    for d in "$drafts_dir"/*/; do
+        [ -d "$d" ] || continue
+        name=$(basename "${d%/}")
+        if ! has_recent_files "$d" 30; then
+            log "delete draft $name: untouched for 30 days"
+            pruned=1
+            run rm -rf "${d%/}"
+            continue
+        fi
+        if has_recent_files "$d" 7; then
+            log "keep draft $name: touched this week"
+            continue
+        fi
+        if [ -f "$d/PLAN.md" ]; then
+            move_plan "${d%/}" "$name"
+            continue
+        fi
+        if draft_is_clean "$d"; then
+            log "delete draft $name: no plan and no changes"
+            pruned=1
+            run rm -rf "${d%/}"
+        else
+            log "keep draft $name: has changes"
+        fi
+    done
+}
+
+# Best-effort cache reclamation; each tool is skipped unless it is installed.
+prune_caches() {
+    local pipcmd cache
+    if command -v pip >/dev/null 2>&1 || command -v pip3 >/dev/null 2>&1; then
+        pipcmd=$(command -v pip || command -v pip3)
+        cache=$("$pipcmd" cache dir 2>/dev/null) || cache=""
+        if [ -n "$cache" ] && [ -d "$cache" ]; then
+            log "pip: removing files older than 30 days from $cache"
+            pruned=1
+            if [ "$DRY_RUN" -eq 1 ]; then
+                find "$cache" -type f -mtime +30 -print
+            else
+                find "$cache" -type f -mtime +30 -delete
+            fi
+        fi
+    fi
+    if command -v brew >/dev/null 2>&1; then
+        log "brew cleanup"
+        pruned=1
+        run brew cleanup
+    fi
+    if command -v uv >/dev/null 2>&1; then
+        log "uv cache prune"
+        pruned=1
+        run uv cache prune
+    fi
+    if command -v podman >/dev/null 2>&1; then
+        log "podman system prune"
+        pruned=1
+        run podman system prune -f --filter "until=168h"
+    fi
+    if command -v docker >/dev/null 2>&1; then
+        log "docker system prune"
+        pruned=1
+        run docker system prune -f --filter "until=168h"
+    fi
+    if command -v pre-commit >/dev/null 2>&1; then
+        log "pre-commit gc"
+        pruned=1
+        run pre-commit gc
+    fi
+}
+
+log "=== workspace-prune begin $(date +%Y-%m-%dT%H:%M:%S) (dry_run=$DRY_RUN) ==="
+prune_checkouts
+prune_drafts
+prune_caches
+log "=== workspace-prune done $(date +%Y-%m-%dT%H:%M:%S) ==="
+
+# Publish: dry runs echo to the terminal; real runs write the block only when
+# a prune was attempted, then age out blocks past 7 days.
+if [ "$DRY_RUN" -eq 1 ]; then
+    cat "$buf_file" >&3
+elif [ "$pruned" -eq 1 ]; then
+    cat "$buf_file" >> "$log_file"
+    trim_log
+fi
+exec 3>&-
+rm -f "$buf_file"
