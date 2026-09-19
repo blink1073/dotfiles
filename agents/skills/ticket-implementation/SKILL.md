@@ -43,8 +43,7 @@ Ticket work products live under `.opencode/work/` in the checkout. One
 ticket is in progress at a time, so the files sit directly there; when a
 stack puts more than one branch in flight, each branch gets its own
 `.opencode/work/<branch>/`. `.opencode/` is gitignored, so plans,
-reviews, ledgers, and notes are never committed (see
-`~/.claude/CLAUDE.md`).
+reviews, ledgers, and notes are never committed.
 
 Files:
 

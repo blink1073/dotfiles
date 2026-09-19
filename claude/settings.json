@@ -28,8 +28,10 @@
       "Bash(tail:*)"
     ],
     "deny": [
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr create:*)",
       "Bash(gh pr merge:*)",
-      "Bash(gh pr comment:*)"
+      "Bash(git commit:*)"
     ]
   },
   "autoMode": {

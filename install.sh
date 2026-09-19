@@ -40,22 +40,26 @@ cp vscode_keybindings.json "$vscode/keybindings.json"
 # Claude
 mkdir -p ~/.claude/hooks
 mkdir -p ~/.claude/skills
-cp claude/instructions.md ~/.claude/CLAUDE.md
+cp agents/AGENTS.md ~/.claude/CLAUDE.md
 if [ -f ~/.claude/settings.json ]; then
-  # Merge the repo's Bash allow-list into the existing file, keeping
+  # Merge the repo's Bash allow/deny lists into the existing file, keeping
   # everything else already on this machine (env vars, model routing,
-  # extra deny entries, etc.) untouched.
+  # extra non-Bash entries, etc.) untouched.
   repo_bash_allow=$(jq -c '.permissions.allow' claude/settings.json)
   existing_non_bash_allow=$(jq -c '[.permissions.allow[]? | select(startswith("Bash") | not)]' ~/.claude/settings.json)
+  repo_bash_deny=$(jq -c '.permissions.deny' claude/settings.json)
+  existing_non_bash_deny=$(jq -c '[.permissions.deny[]? | select(startswith("Bash") | not)]' ~/.claude/settings.json)
   jq --argjson bash_allow "$repo_bash_allow" --argjson other "$existing_non_bash_allow" \
-    '.permissions.allow = ($bash_allow + $other | unique)' \
+     --argjson bash_deny "$repo_bash_deny" --argjson other_deny "$existing_non_bash_deny" \
+    '.permissions.allow = ($bash_allow + $other | unique)
+     | .permissions.deny = ($bash_deny + $other_deny | unique)' \
     ~/.claude/settings.json > /tmp/claude_settings_merged.json
   mv /tmp/claude_settings_merged.json ~/.claude/settings.json
 else
   cp claude/settings.json ~/.claude/settings.json
 fi
-cp claude/hooks/* ~/.claude/hooks/
-cp -r claude/skills/* ~/.claude/skills/
+cp agents/hooks/* ~/.claude/hooks/
+cp -r agents/skills/* ~/.claude/skills/
 
 # OpenCode
 opencode_dir="$HOME/.config/opencode"
@@ -83,6 +87,7 @@ if [ ${#missing[@]} -gt 0 ]; then
 fi
 mkdir -p "$opencode_dir/agent"
 cp opencode/agent/reviewer.md "$opencode_dir/agent/reviewer.md"
+cp agents/AGENTS.md "$opencode_dir/AGENTS.md"
 cp opencode/tui.json "$opencode_dir/tui.json"
 cp opencode/package.json "$opencode_dir/package.json"
 cp opencode/package-lock.json "$opencode_dir/package-lock.json"

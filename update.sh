@@ -25,19 +25,22 @@ cp "$vscode/settings.json" vscode_settings.json
 cp "$vscode/keybindings.json" vscode_keybindings.json
 
 # Claude
-cp ~/.claude/CLAUDE.md claude/instructions.md
-# Only the Bash allow-list is synced into the committed settings.json — never
-# the whole file, which can carry env vars, API keys, or model routing that
-# don't belong in a public repo. `unique` sorts as well as dedupes, matching
+cp ~/.claude/CLAUDE.md agents/AGENTS.md
+# Only the Bash allow/deny lists are synced into the committed settings.json —
+# never the whole file, which can carry env vars, API keys, or model routing
+# that don't belong in a public repo. `unique` sorts as well as dedupes, matching
 # install.sh, so repeated syncs are a no-op.
 allow="$(jq -c '.permissions.allow | map(select(startswith("Bash"))) | unique' ~/.claude/settings.json)"
-jq --argjson allow "$allow" '.permissions.allow = $allow' claude/settings.json > claude/settings.json.tmp
+deny="$(jq -c '.permissions.deny | map(select(startswith("Bash"))) | unique' ~/.claude/settings.json)"
+jq --argjson allow "$allow" --argjson deny "$deny" \
+  '.permissions.allow = $allow | .permissions.deny = $deny' \
+  claude/settings.json > claude/settings.json.tmp
 mv claude/settings.json.tmp claude/settings.json
-cp ~/.claude/hooks/* claude/hooks/
-mkdir -p claude/skills
+cp ~/.claude/hooks/* agents/hooks/
+mkdir -p agents/skills
 # Mirror, so a skill deleted from ~/.claude is deleted here too.
 # Excludes evg/evergreen skills: they're work-machine-only, not for the public repo.
-rsync -a --delete --exclude='*evg*' --exclude='*evergreen*' ~/.claude/skills/ claude/skills/
+rsync -a --delete --exclude='*evg*' --exclude='*evergreen*' ~/.claude/skills/ agents/skills/
 
 # OpenCode
 opencode_dir="$HOME/.config/opencode"
