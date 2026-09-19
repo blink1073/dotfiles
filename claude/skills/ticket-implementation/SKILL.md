@@ -24,9 +24,9 @@ reasoning itself.
 
 | Phase | Who does it | Model | Output to disk |
 |---|---|---|---|
-| Planning | Top-level session | Heavy | PLAN.md at the repo root |
+| Planning | Top-level session | Heavy | PLAN.md in the work directory |
 | Implementing | Conductor | Light | Working tree and commits |
-| Review - Local Bot | `reviewer` sub-agent | Heavy | REVIEW.md at the repo root |
+| Review - Local Bot | `reviewer` sub-agent | Heavy | REVIEW.md in the work directory |
 | Review - Self | Conductor | Light | Draft PR to the fork |
 | Review - Automated tools | Conductor | Light | Push toward the upstream PR |
 | Review - Team | Conductor | Light | Coordinate with the team |
@@ -37,38 +37,52 @@ before continuing. Sessions end between the Planning session and the
 Implementing session: the planning session writes PLAN.md and ends; the
 conductor starts fresh, reads PLAN.md, and implements.
 
-## Ticket path
+## Ticket work directory
 
-Each ticket uses a top-level `PLAN.md` and `REVIEW.md` at the repo root.
-One ticket is in progress at a time, so a single pair of files is
-enough. Both are gitignored through the user-level `.gitignore`, so
-they stay local (see `~/.claude/CLAUDE.md`).
+Ticket work products live under `.opencode/work/` in the checkout. One
+ticket is in progress at a time, so the files sit directly there; when a
+stack puts more than one branch in flight, each branch gets its own
+`.opencode/work/<branch>/`. `.opencode/` is gitignored, so plans,
+reviews, ledgers, and notes are never committed (see
+`~/.claude/CLAUDE.md`).
 
-`PLAN.md` holds the plan the dedicated Planning session drafts.
-`REVIEW.md` holds the review the `reviewer` sub-agent writes. The
-planning session drafts PLAN.md; the `reviewer` sub-agent drafts
-REVIEW.md.
+Files:
+
+- `PLAN.md` — the plan the dedicated Planning session drafts.
+- `REVIEW.md` — the review the `reviewer` sub-agent writes.
+- `LEDGER.md` — the ticket **ledger** (see below).
+- `NOTES.md` — your own notes. You write it; skills create it empty on
+  first use.
+
+Resolve the directory before reading or writing any of them. Call the
+result `<work>`:
+
+1. Read the branch with `git rev-parse --abbrev-ref HEAD` and replace
+   every `/` with `-`. On a detached HEAD, use `detached-<short-sha>`.
+2. `.opencode/work/<branch>/` exists: use it.
+3. Else `.opencode/work/LEDGER.md` exists and its `Branch:` field names
+   this branch: use `.opencode/work/`.
+4. Else `.opencode/work/LEDGER.md` exists for a different branch: create
+   `.opencode/work/<branch>/`, move `PLAN.md`, `REVIEW.md`, `LEDGER.md`,
+   and `NOTES.md` from `.opencode/work/` into it, then work in
+   `.opencode/work/<branch>/`.
+5. Else: use `.opencode/work/`.
 
 ### Ticket ledger and notes
 
-Alongside those, each checkout keeps two files under
-`~/workspace/tickets`, named by the checkout's basename (e.g.
-`~/workspace/tickets/ledgers/my-repo.md`):
+Each work directory holds two files alongside the plan and review:
 
-- `ledgers/<checkout-dir>.md` — the ticket **ledger**. Skills
-  auto-manage it. It carries the ticket's metadata (system, key, type,
-  title), a **session checklist** with one item per phase of the
-  workflow, and the **next suggested user action** so a fresh session
-  knows what to do. Check an item off as its phase completes, so
-  progress survives session boundaries; update the next action whenever
-  a phase completes or blocks.
-- `notes/<checkout-dir>.md` — your own note file. You write to it
-  directly; skills leave it alone except to create it empty on first
-  use.
+- `LEDGER.md` — the ticket **ledger**. Skills auto-manage it. It carries
+  the ticket's metadata (branch, system, key, type, title), a **session
+  checklist** with one item per phase of the workflow, and the **next
+  suggested user action** so a fresh session knows what to do. Check an
+  item off as its phase completes, so progress survives session
+  boundaries; update the next action whenever a phase completes or
+  blocks.
+- `NOTES.md` — your own note file. You write to it directly; skills
+  leave it alone except to create it empty on first use.
 
-Both directories exist under `~/workspace/tickets`, outside any git
-repo, so the ledger and notes are never committed. The ledger is
-reset/re-initialized at the start of each ticket in that checkout.
+The ledger is reset/re-initialized at the start of each ticket.
 
 Ledger format:
 
@@ -76,12 +90,13 @@ Ledger format:
 # Ledger: <checkout-dir>
 
 Git checkout: `<abs path>`
+Branch: `<branch>`
 System: `JIRA`/`GitHub`
 Key: `PROJ-1234`
 Type: `bug`/`feature`
 Title: `<title>`
-Plan: `<repo>/PLAN.md`
-Review: `<repo>/REVIEW.md`
+Plan: `<work>/PLAN.md`
+Review: `<work>/REVIEW.md`
 Ticket: `<URL>`
 Fork PR: `<URL>`
 Upstream PR: `<URL>`
@@ -113,11 +128,10 @@ phase starts.
 ## Workflow
 
 1. **Set up the ledger and notes.** At the start of work on a ticket in
-   a checkout, create `~/workspace/tickets/ledgers/` and
-   `~/workspace/tickets/notes/` if they do not exist, then (re)write
-   `ledgers/<checkout-dir>.md` with the ticket's metadata (including the
-   **Ticket** link once resolved) and a fresh session checklist, and
-   create `notes/<checkout-dir>.md` empty if it does not exist. Flip a
+   a checkout, resolve `<work>` (above), create it if needed, then
+   (re)write `LEDGER.md` with the ticket's metadata (including the
+   **Branch** and the **Ticket** link once resolved) and a fresh session
+   checklist, and create `NOTES.md` empty if it does not exist. Flip a
    checklist item to `[x]` as its phase completes, record the relevant
    PR link alongside (steps below), and update **Next suggested user
    action** to the next phase.
@@ -127,18 +141,18 @@ phase starts.
    RED-GREEN-REFACTOR cycle from here on, for both the bug and feature
    paths. If the bug/feature determination is missing, ask before
    proceeding.
-3. **Resolve the plan.** The plan is a local markdown file at the repo
-   root, `PLAN.md`. It is not a gist.
+3. **Resolve the plan.** The plan is a local markdown file in `<work>`,
+   `PLAN.md`. It is not a gist.
    - PLAN.md exists: read it and treat it as the implementation plan.
    - PLAN.md is missing: in the **Planning** phase (the heavy top-level
-     session), draft it and write it to the repo root. In the
+     session), draft it and write it to `<work>`. In the
      **Implementing** phase, do not draft a plan: **ask the user to
      create one** and pause until they do or supply a path. Say it
      plainly, for example:
 
-     > No PLAN.md at the repo root. Run the Planning phase on the heavy
-     > model (GLM 5.2) in a separate session, save the plan to PLAN.md,
-     > then resume here. I'll wait.
+     > No PLAN.md at `.opencode/work/`. Run the Planning phase on the
+     > heavy model (GLM 5.2) in a separate session, save the plan to
+     > `.opencode/work/PLAN.md`, then resume here. I'll wait.
 4. **Implement.** **REQUIRED SUB-SKILL:** `executing-plans` to work
    the plan task by task, with `test-driven-development` governing how
    each piece of code gets written. Where the work adds or edits a
@@ -155,10 +169,10 @@ phase starts.
 6. **Hand off for review.** Review is staged; this skill ends at the
    fork PR.
    - **Review - Local Bot (heavy).** Delegate to the `reviewer`
-     sub-agent, which writes REVIEW.md at the ticket path. The conductor
-     reads it and addresses it before moving on. When REVIEW.md is
-     written and addressed, check off **Review - Local Bot** in the
-     ledger and set the next action to open the draft fork PR.
+     sub-agent, which writes `<work>/REVIEW.md`. The conductor reads it
+     and addresses it before moving on. When REVIEW.md is written and
+     addressed, check off **Review - Local Bot** in the ledger and set
+     the next action to open the draft fork PR.
    - **Review - Self (light).** Before opening the draft PR to the
      fork, offer to make a targeted evergreen patch build — ask the
      user rather than triggering a CI build unprompted. Then open a
@@ -184,9 +198,10 @@ phase starts.
 | Auto-producing a plan in the Implementing phase when none exists | Ask the user to create it; pause until they do |
 | Doing heavy reasoning in the conductor session | Run it in the dedicated heavy Planning session, or delegate to the `reviewer` sub-agent |
 | Continuing before the reviewer sub-agent wrote REVIEW.md | Read REVIEW.md and confirm it exists first |
-| Treating the plan as a gist to publish | Plans live in the repo root `PLAN.md`, not a gist |
+| Treating the plan as a gist to publish | Plans live in `.opencode/work/PLAN.md`, not a gist |
 | Re-explaining a sub-skill's process inline instead of invoking it | Invoke the sub-skill; don't duplicate its process here |
 | Invoking `pr-description` directly to open the PR | Invoke `pr-creation` instead — it handles the description via `pr-description` itself |
 | Skipping `/review` or addressing review comments without user sign-off | Run the staged review loop; the user owns responses |
-| Naming the ledger/notes file by ticket key or repo name instead of checkout dir | Use the checkout basename: `~/workspace/tickets/ledgers/<checkout-dir>.md` |
+| Writing work products to the repo root or `~/workspace/tickets` | Resolve `<work>` and write everything under `.opencode/work/` |
+| Adding a branch subdirectory before a second branch has a ledger | Start flat in `.opencode/work/`; promote to per-branch only on the second branch |
 | Leaving the session checklist unchecked as phases finish | Flip each item to `[x]` when its phase completes; the ledger is the durable progress record |

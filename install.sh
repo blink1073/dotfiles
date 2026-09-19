@@ -69,6 +69,20 @@ if [ -f "$opencode_dir/opencode.jsonc" ]; then
 else
   cp opencode/opencode.jsonc "$opencode_dir/opencode.jsonc"
 fi
+# Model settings are per-machine and not tracked in the repo.
+missing=()
+jq -e '.model' "$opencode_dir/opencode.jsonc" >/dev/null 2>&1 || missing+=("model")
+jq -e '.agent.reviewer.model' "$opencode_dir/opencode.jsonc" >/dev/null 2>&1 || missing+=("agent.reviewer.model")
+if [ ${#missing[@]} -gt 0 ]; then
+  {
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "WARNING: opencode model settings are missing: ${missing[*]}"
+    echo "Set them in $opencode_dir/opencode.jsonc. Each machine sets its own."
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  } >&2
+fi
+mkdir -p "$opencode_dir/agent"
+cp opencode/agent/reviewer.md "$opencode_dir/agent/reviewer.md"
 cp opencode/tui.json "$opencode_dir/tui.json"
 cp opencode/package.json "$opencode_dir/package.json"
 cp opencode/package-lock.json "$opencode_dir/package-lock.json"

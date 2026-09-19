@@ -9,27 +9,24 @@ description: Use when implementing a written plan (PLAN.md) in the conductor ses
 
 Work a written implementation plan task by task in the **conductor**
 session (light model), verifying each step and stopping when blocked.
-The plan is at `PLAN.md` at the repo root.
+The plan is `<work>/PLAN.md` in the ticket work directory (resolve
+`<work>` per `ticket-implementation`).
 
 Say so at the start: "I'm using the executing-plans skill to implement
 this plan."
 
 ## Step 1: Load and review the plan
 
-1. Read `PLAN.md` at the repo root.
+1. Resolve `<work>` and read `<work>/PLAN.md`.
 2. Review it critically. Name any questions or concerns.
 3. If you have concerns, raise them with the user before starting. Do
    not guess past a gap.
 4. If the plan is sound, create a todo list with one entry per task.
-   The ticket ledger at
-   `~/workspace/tickets/ledgers/<checkout-dir>.md` should already carry
-   this ticket's metadata and a fresh session checklist (set up by the
-   Planning session); if it does not exist, create it (and
-   `~/workspace/tickets/notes/<checkout-dir>.md` and the `ledgers/`+
-   `notes/` directories) now, using the `ticket-implementation` format.
-   You may jot progress in
-   `~/workspace/tickets/notes/<checkout-dir>.md`, but leave the notes
-   file's content to the user.
+   The ticket ledger at `<work>/LEDGER.md` should already carry this
+   ticket's metadata and a fresh session checklist (set up by the
+   Planning session); if it does not exist, create it and `<work>/NOTES.md`
+   now, using the `ticket-implementation` format. You may jot progress
+   in `<work>/NOTES.md`, but leave the notes file's content to the user.
 
 ## Step 2: Execute the tasks
 
@@ -43,9 +40,8 @@ For each task:
 ## Step 3: Finish
 
 When all tasks are complete and verified, check off **Implementing** in
-the ticket ledger
-(`~/workspace/tickets/ledgers/<checkout-dir>.md`), stop coding, and hand
-off to the review stage. Follow the staged review loop in
+the ticket ledger (`<work>/LEDGER.md`), stop coding, and hand off to the
+review stage. Follow the staged review loop in
 `ticket-implementation` (Review - Local Bot, then Self, then Automated
 tools, then Team). Do not start the next phase on your own.
 

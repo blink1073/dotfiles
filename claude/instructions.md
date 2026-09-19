@@ -24,13 +24,18 @@ The repo is public. When asked to commit changes to `~/.claude`:
 
 ## Ticket work products
 
-Give each ticket a top-level `PLAN.md` and `REVIEW.md` at the repo root.
-One ticket is in progress at a time, so a single pair of files is enough.
-Both are gitignored through the user-level `.gitignore`, so they stay
-local to the repo rather than being committed.
+Ticket work products live in `.opencode/work/` in the checkout, not at
+the repo root: `PLAN.md`, `REVIEW.md`, `LEDGER.md`, and `NOTES.md`. One
+ticket is in progress at a time, so the files sit directly in
+`.opencode/work/`; a stack with more than one branch in flight gives each
+branch its own `.opencode/work/<branch>/`. The user-level `.gitignore`
+ignores `.opencode/`, so none of these are committed.
 
 `PLAN.md` holds a ticket's implementation plan. `REVIEW.md` holds the
-review from a local bot review.
+review from a local bot review. `LEDGER.md` carries the ticket's
+metadata, a per-phase session checklist, and the next suggested action,
+so progress survives session boundaries. `NOTES.md` is your own scratch
+file. See `ticket-implementation` for the resolution rule and formats.
 
 ## GitHub Actions Security
 
