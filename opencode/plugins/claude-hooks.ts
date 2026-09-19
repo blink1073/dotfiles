@@ -11,7 +11,9 @@ const PYTHON_HOOKS = [
   { script: "check_git_commit.py", gate: /\bgit\s+commit\b/ },
 ]
 
-const GUARDED_PREFIXES = ["gh pr create", "git push"]
+const PR_CREATE_PREFIX = "gh pr create"
+
+const GUARDED_PREFIXES = ["git push"]
 
 function runHook(script: string, command: string): Promise<string | undefined> {
   return new Promise((resolve) => {
@@ -32,14 +34,12 @@ function runHook(script: string, command: string): Promise<string | undefined> {
   })
 }
 
-function guardedPrefix(command: string): string | undefined {
+function matchesPrefix(command: string, prefix: string): boolean {
   for (const segment of command.split(/&&|\|\||;|\|/)) {
     const trimmed = segment.trim()
-    for (const prefix of GUARDED_PREFIXES) {
-      if (trimmed === prefix || trimmed.startsWith(prefix + " ")) return prefix
-    }
+    if (trimmed === prefix || trimmed.startsWith(prefix + " ")) return true
   }
-  return undefined
+  return false
 }
 
 function writesComment(command: string): boolean {
@@ -79,7 +79,13 @@ export const ClaudeHooks: Plugin = async () => {
         if (rejection) throw new Error(rejection)
       }
 
-      const prefix = guardedPrefix(command)
+      if (matchesPrefix(command, PR_CREATE_PREFIX)) {
+        throw new Error(
+          "Blocked: agents prepare pull requests, they don't open them. Write the PR body to .opencode/pr-body.md, then give the user the gh pr create command to run from the host.",
+        )
+      }
+
+      const prefix = GUARDED_PREFIXES.find((p) => matchesPrefix(command, p))
       if (!prefix) return
       const blocked = blockedAt.get(prefix)
       if (blocked === undefined || blocked >= userMessages) {
