@@ -1,0 +1,290 @@
+#!/usr/bin/env bash
+# podbox — an opinionated per-project podman sandbox, inspired by Docker Sandboxes.
+#
+#   podbox up       create the sandbox only if not already running, then run it
+#                   (container is torn down when the opencode session exits)
+#   podbox create   create a container sandbox for the current directory and
+#                   drop you into an opencode session inside it
+#   podbox shell    exec an interactive bash shell in the running sandbox
+#   podbox exec CMD run a command inside the running sandbox
+#   podbox rm       stop, remove the sandbox container and its secrets
+#   podbox status   show the sandbox container state
+#   podbox code     re-enter an opencode session in the running sandbox
+#
+# Secrets are delivered as podman secrets (mounted at /run/secrets), never as
+# environment variables, so they are not visible via `podman inspect` or /proc.
+#
+# The GitHub token is a read-only personal access token you supply on the host:
+#   GH_TOKEN_SANDBOX=github_pat_xxx podbox create
+# It is injected as a secret and used by git inside the sandbox through a small
+# credential helper. No host git credential helper (osxkeychain, gh) is shared.
+# GH_TOKEN_SANDBOX is the preferred name: unlike GH_TOKEN/GITHUB_TOKEN it is not
+# recognized by git or gh on the host, so exporting it in your shell is safe and
+# can never shadow your real read/write credentials.
+#
+# The fireworks API key is taken from your opencode auth store on the host,
+# falling back to the FIREWORKS_API_KEY env var:
+#   podbox create            (reads ~/.local/share/opencode/auth.json)
+#   FIREWORKS_API_KEY=...      podbox create   (explicit override)
+# It is mounted as a secret and exported into the shell via a profile snippet.
+
+set -euo pipefail
+
+NAME="${PODBOX_NAME:-$(basename "$PWD" | tr 'A-Z ' 'a-z-' | tr -cd '[:alnum:]_-')}"
+IMAGE="${PODBOX_IMAGE:-fedora:latest}"
+NETWORK="${PODBOX_NETWORK:-}"
+GITHUB_USER="${GITHUB_USER:-}"
+PODBOX_MODEL="${PODBOX_MODEL:-fireworks-ai/accounts/fireworks/models/deepseek-v4p1-flash}"
+PODBOX_ENTRY="${PODBOX_ENTRY:-opencode}"
+secret_gh="podbox-gh-token"
+secret_fw="podbox-fireworks"
+
+die() { printf 'podbox: %s\n' "$*" >&2; exit 1; }
+
+info() { printf 'podbox: %s\n' "$*"; }
+
+# --- secret management ----------------------------------------------------
+
+gh_token_value() {
+  local v="${GH_TOKEN_SANDBOX:-${GH_TOKEN:-${GITHUB_TOKEN:-}}}"
+  [ -n "$v" ] && printf '%s' "$v"
+}
+
+fw_value() {
+  local v="${FIREWORKS_API_KEY:-}"
+  if [ -z "$v" ]; then
+    local auth="$HOME/.local/share/opencode/auth.json"
+    [ -r "$auth" ] && v="$(jq -r '."fireworks-ai".key // empty' "$auth" 2>/dev/null || true)"
+  fi
+  [ -n "$v" ] && printf '%s' "$v"
+}
+
+upsert_secret() { # name value
+  local name="$1" value="$2"
+  podman secret rm "$name" >/dev/null 2>&1 || true
+  printf '%s' "$value" | podman secret create "$name" - >/dev/null
+  info "secret  $name"
+}
+
+remove_secrets() {
+  for s in "$secret_gh" "$secret_fw"; do
+    podman secret rm "$s" >/dev/null 2>&1 || true
+  done
+}
+
+# --- container setup ---------------------------------------------------------
+
+setup_container() {
+  local have_gh
+  have_gh="$(podman exec "$NAME" sh -c '[ -r /run/secrets/podbox-gh-token ] && echo yes || echo no')"
+  info "installing git, gh, python into $NAME (first run may take a while)"
+  podman exec "$NAME" bash -c '
+    set -e
+    command -v dnf >/dev/null 2>&1 && pkg=dnf || pkg=apt-get
+    if [ "$pkg" = dnf ]; then
+      dnf -y install git python3 curl >/dev/null
+    else
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update >/dev/null && apt-get -y install git python3 curl >/dev/null
+    fi
+  ' || die "package install failed"
+
+  # gh (GitHub CLI) is best-effort; some distro repos don't carry it.
+  podman exec "$NAME" bash -c '
+    command -v gh >/dev/null 2>&1 || { dnf -y install gh >/dev/null 2>&1 || apt-get -y install gh >/dev/null 2>&1; } || true
+  ' >/dev/null 2>&1 || true
+
+  # A credential helper that hands git only the injected read-only PAT.
+  if [ "$have_gh" = yes ]; then
+    podman exec "$NAME" bash -c '
+      set -e
+      cat > /usr/local/bin/podbox-cred <<'"'"'EOF'"'"'
+#!/usr/bin/env bash
+case "$1" in
+  get)
+    token="$(cat /run/secrets/podbox-gh-token)"
+    echo "username=x-access-token"
+    echo "password=${token}"
+    ;;
+esac
+EOF
+      chmod 0755 /usr/local/bin/podbox-cred
+    ' || die "credential helper install failed"
+
+    # Wipe any inherited credential helpers, then use only our PAT-backed one.
+    podman exec "$NAME" git config --global --unset-all credential.helper >/dev/null 2>&1 || true
+    podman exec "$NAME" git config --global credential.helper /usr/local/bin/podbox-cred
+    [ -n "$GITHUB_USER" ] && podman exec "$NAME" git config --global user.name "$GITHUB_USER"
+    podman exec "$NAME" git config --global credential.useHttpPath true
+    podman exec "$NAME" git config --global core.askPass true
+  fi
+
+  # Export the mounted fireworks secret at shell start without baking it into env.
+  podman exec "$NAME" bash -c '
+    fmount=/run/secrets/podbox-fireworks
+    [ -r "$fmount" ] || exit 0
+    { echo "# exported from $fmount (podbox)";
+      echo "export FIREWORKS_API_KEY=\"\$(cat $fmount)\"";
+    } > /etc/profile.d/podbox-env.sh
+  ' || true
+
+  # Pin the default opencode model. The container's $HOME is fresh, so this is
+  # effective for every opencode run here and cannot be overridden by a mounted
+  # project's own opencode.json.
+  local cfg; cfg="$(mktemp)"
+  printf '{"$schema":"https://opencode.ai/config.json","model":"%s"}\n' "$PODBOX_MODEL" > "$cfg"
+  podman exec "$NAME" mkdir -p /root/.config/opencode
+  podman cp "$cfg" "$NAME:/root/.config/opencode/opencode.json"
+  rm -f "$cfg"
+
+  info "secrets: $secret_gh (git), $secret_fw (fireworks)"
+}
+
+install_opencode() {
+  [ "${PODBOX_ENTRY%% *}" = "opencode" ] || return 0
+  info "installing opencode in $NAME (first run downloads the binary)"
+  podman exec "$NAME" bash -c '
+    command -v opencode >/dev/null 2>&1 && exit 0
+    curl -fsSL https://opencode.ai/install | bash >/dev/null 2>&1 || true
+    # The installer may not place the binary on PATH for non-interactive shells.
+    found=""
+    for p in /usr/local/bin ~/.opencode/bin ~/.local/bin; do
+      if [ -x "$p/opencode" ]; then found="$p/opencode"; break; fi
+    done
+    if [ -z "$found" ]; then
+      echo "opencode installer ran but no binary was found under /usr/local/bin, ~/.opencode/bin, or ~/.local/bin" >&2
+      exit 1
+    fi
+    ln -sf "$found" /usr/local/bin/opencode
+  ' || die "opencode install failed; set PODBOX_ENTRY=bash to skip it"
+}
+
+# --- commands ---------------------------------------------------------------
+
+ensure_machine() {
+  # Ensure the podman VM is up (macOS). `machine status` isn't in every version.
+  podman machine list --format '{{.Name}} {{.LastUp}}' 2>/dev/null \
+    | grep -q 'Currently running' || podman machine start
+}
+
+ensure_host_path() {
+  # macOS podman machines only share paths under $HOME; mounting elsewhere fails.
+  case "$PWD" in
+    "$HOME"/*) : ;;
+    *) die "cwd outside \$HOME isn't mountable by the macOS podman VM; run podbox in a path under $HOME" ;;
+  esac
+}
+
+ensure_created() {
+  ensure_machine
+  ensure_host_path
+
+  # Recreate any stale container (e.g. a stopped one) so name collisions are safe.
+  podman rm -f "$NAME" >/dev/null 2>&1 || true
+
+  local secargs=()
+  local value gh=""
+  if gh="$(gh_token_value)"; then
+    upsert_secret "$secret_gh" "$gh"
+    secargs+=(--secret "$secret_gh")
+  else
+    info "no GH_TOKEN_SANDBOX set; git inside the sandbox will have no credentials (read-only off)"
+  fi
+  if value="$(fw_value)"; then
+    upsert_secret "$secret_fw" "$value"
+    secargs+=(--secret "$secret_fw")
+  else
+    info "no FIREWORKS_API_KEY found (env or ~/.local/share/opencode/auth.json); fireworks won't be available"
+  fi
+
+  info "creating sandbox '$NAME' for $PWD"
+  local netargs=()
+  [ -n "$NETWORK" ] && netargs=(--network "$NETWORK")
+  podman run -d --name "$NAME" --init \
+    --rm \
+    --workdir "$PWD" \
+    --volume "$PWD:$PWD" \
+    "${netargs[@]}" \
+    "${secargs[@]}" \
+    --hostname "$NAME" \
+    --entrypoint bash \
+    "$IMAGE" -c 'exec sleep infinity' >/dev/null \
+    || die "failed to start container (is the image pullable?)"
+
+  setup_container
+  install_opencode
+}
+
+run_entry() {
+  cat <<EOF
+
+Sandbox '$NAME' ready (workdir $PWD).
+  opencode: podbox code      shell: podbox shell
+  exec:     podbox exec <cmd>      remove: podbox rm
+EOF
+  podman exec -it "$NAME" bash -lc "$PODBOX_ENTRY"
+  local rc=$?
+  if [ "${PODBOX_TEARDOWN:-1}" = 1 ]; then
+    info "exited sandbox '$NAME' — tearing down"
+    podman rm -f "$NAME" >/dev/null 2>&1 || true
+    remove_secrets
+  fi
+  exit $rc
+}
+
+cmd_create() {
+  ensure_created
+  run_entry
+}
+
+cmd_up() {
+  ensure_machine
+  ensure_host_path
+  if podman ps --filter "name=${NAME}" --format '{{.Names}}' | grep -qx "$NAME"; then
+    info "sandbox '$NAME' already running — attaching"
+  else
+    ensure_created
+  fi
+  run_entry
+}
+
+cmd_code() {
+  # Drop into an opencode session, sourcing the fireworks env shim first.
+  exec podman exec -it "$NAME" bash -lc "$PODBOX_ENTRY" \
+    || die "sandbox '$NAME' not running; run 'podbox create'"
+}
+
+cmd_shell() {
+  podman exec -it "$NAME" bash -l || die "sandbox '$NAME' not running; run 'podbox create'"
+}
+
+cmd_exec() {
+  [ "$#" -gt 0 ] || die "podbox exec needs a command; try 'podbox shell'"
+  podman exec -it "$NAME" "$@" || die "sandbox '$NAME' not running"
+}
+
+cmd_rm() {
+  podman rm -f "$NAME" >/dev/null 2>&1 || true
+  remove_secrets
+  info "removed '$NAME'"
+}
+
+cmd_status() {
+  podman ps --filter "name=${NAME}" --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+}
+
+usage() {
+  sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+case "${1:-}" in
+  create) shift; cmd_create "$@" ;;
+  up|ensure) shift; cmd_up "$@" ;;
+  shell|sh) shift; cmd_shell "$@" ;;
+  code) shift; cmd_code "$@" ;;
+  exec) shift; cmd_exec "$@" ;;
+  rm|destroy) shift; cmd_rm "$@" ;;
+  status|ps) shift; cmd_status "$@" ;;
+  help|-h|--help) usage ;;
+  *) usage; exit 1 ;;
+esac

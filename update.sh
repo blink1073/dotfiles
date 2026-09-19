@@ -50,3 +50,9 @@ cp "$opencode_dir/package.json" opencode/package.json
 cp "$opencode_dir/package-lock.json" opencode/package-lock.json
 # Mirror, so a plugin deleted from ~/.config/opencode is deleted here too.
 rsync -a --delete "$opencode_dir/plugins/" opencode/plugins/
+
+# Sandbox CLI — intentionally NOT synced back. Unlike the shell/opencode/claude
+# files above (which live on the machine and are copied INTO the repo), the
+# sandbox CLI is authored here in sandbox/ and is the source of truth. install.sh
+# copies it out to ~/.local/bin; update.sh must leave sandbox/ alone so a local
+# edit in ~/.local/bin can never overwrite the committed version.

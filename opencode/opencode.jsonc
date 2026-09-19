@@ -47,7 +47,17 @@
       "gh pr create": "ask",
       "gh pr create *": "ask",
       "git push": "ask",
-      "git push *": "ask"
+      "git push *": "ask",
+      "gh api /repos/*/issues/*/comments*": "deny",
+      "gh api /repos/*/pulls/*/comments*": "deny",
+      "gh api /repos/*/pulls/*/reviews*": "deny",
+      "gh api repos/*/issues/*/comments*": "deny",
+      "gh api repos/*/pulls/*/comments*": "deny",
+      "gh api repos/*/pulls/*/reviews*": "deny",
+      "git add": "ask",
+      "git add *": "ask",
+      "git commit": "ask",
+      "git commit *": "ask"
     }
   }
 }

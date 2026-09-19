@@ -88,3 +88,9 @@ cp opencode/package.json "$opencode_dir/package.json"
 cp opencode/package-lock.json "$opencode_dir/package-lock.json"
 cp -r opencode/plugins/* "$opencode_dir/plugins/"
 npm ci --prefix "$opencode_dir"
+
+# Sandbox CLI (podbox + opencode-sandbox)
+sandbox_bin="$HOME/.local/bin"
+mkdir -p "$sandbox_bin"
+cp sandbox/podbox sandbox/opencode-sandbox "$sandbox_bin/"
+chmod +x "$sandbox_bin/podbox" "$sandbox_bin/opencode-sandbox"
