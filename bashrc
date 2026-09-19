@@ -405,41 +405,226 @@ edit() {
 
 alias ubuntu="docker run -it -e GRANT_SUDO=yes --user root jupyter/minimal-notebook bash"
 
+_resolve_repo() {
+    local repo=${1:-}
+    case "$repo" in
+        pymongo) repo="mongo-python-driver" ;;
+        django) repo="django-mongodb-backend" ;;
+        det) repo="drivers-evergreen-tools" ;;
+        skimage) repo="scikit-image" ;;
+    esac
+
+    local org
+    for org in mongodb-labs mongodb blink1073 calysto scikit-image; do
+        if gh api "repos/$org/$repo" --silent 2>/dev/null; then
+            echo "$org $repo"
+            return 0
+        fi
+    done
+    echo "Error: '$repo' not found in mongodb-labs, mongodb, blink1073, calysto, or scikit-image" >&2
+    return 1
+}
+
+_adopt_plan() {
+    local ticket=${1:-}
+    if command -v setopt >/dev/null 2>&1; then
+        setopt local_options null_glob
+    fi
+
+    local match candidate="" src=""
+    for match in "$HOME/plans/"*"$ticket"*; do
+        [ -e "$match" ] || continue
+        if [ -f "$match" ]; then
+            candidate="$match"; src="plan-file"; break
+        elif [ -f "$match/PLAN.md" ]; then
+            candidate="$match"; src="plan-dir"; break
+        fi
+    done
+
+    if [ -z "$candidate" ]; then
+        local draft ledger mtime latest="" latest_time=0
+        for draft in "$HOME/workspace/drafts/"*/; do
+            ledger="${draft}.opencode/work/LEDGER.md"
+            [ -f "$ledger" ] || continue
+            grep -Fq -- "$ticket" "$ledger" || continue
+            mtime=$(stat -c %Y "$ledger" 2>/dev/null || stat -f %m "$ledger" 2>/dev/null || echo 0)
+            if [ "$mtime" -gt "$latest_time" ]; then
+                latest_time=$mtime
+                latest="$draft"
+            fi
+        done
+        if [ -n "$latest" ]; then
+            candidate="${latest%/}"; src="draft"
+        fi
+    fi
+
+    [ -n "$candidate" ] || return 0
+
+    local planfile
+    case "$src" in
+        plan-file) planfile="$candidate" ;;
+        *) planfile="$candidate/.opencode/work/PLAN.md" ;;
+    esac
+    if [ ! -f "$planfile" ]; then
+        echo "Found $candidate but no PLAN.md; skipping plan adoption."
+        return 0
+    fi
+
+    echo "Found a plan for $ticket: $planfile"
+    local answer
+    printf 'Use this plan? [Y/n] '
+    read -r answer
+    case "$answer" in
+        ""|[Yy]*) ;;
+        *) return 0 ;;
+    esac
+    mkdir -p .opencode/work
+    cp "$planfile" .opencode/work/PLAN.md
+    echo "Copied plan to .opencode/work/PLAN.md"
+
+    case "$src" in
+        plan-file)
+            printf 'Delete plan file %s? [y/N] ' "$candidate"
+            read -r answer
+            case "$answer" in
+                [Yy]*) rm -f "$candidate" && echo "Deleted $candidate" ;;
+            esac
+            ;;
+        plan-dir)
+            printf 'Delete plan folder %s? [y/N] ' "$candidate"
+            read -r answer
+            case "$answer" in
+                [Yy]*) rm -rf "$candidate" && echo "Deleted $candidate" ;;
+            esac
+            ;;
+        draft)
+            printf 'Delete draft folder %s? [y/N] ' "$candidate"
+            read -r answer
+            case "$answer" in
+                [Yy]*) rm -rf "$candidate" && echo "Deleted $candidate" ;;
+            esac
+            ;;
+    esac
+}
+
+ticket-init() {
+    local curpath=$(pwd)
+    while [ ! -d "$curpath/.git" ]; do
+        if [ "$curpath" = "/" ] || [ -z "$curpath" ]; then
+            echo "ERROR: not inside a git repository"
+            return 1
+        fi
+        curpath=$(dirname "$curpath")
+    done
+    cd "$curpath" || return 1
+
+    mkdir -p .opencode/work
+    [ -f .opencode/work/NOTES.md ] || : > .opencode/work/NOTES.md
+
+    if [ ! -f .vscode/tasks.json ]; then
+        mkdir -p .vscode
+        cat > .vscode/tasks.json <<'TASKS'
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "opencode-sandbox",
+      "type": "shell",
+      "command": "opencode-sandbox",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      },
+      "runOptions": { "runOn": "folderOpen" },
+      "problemMatcher": []
+    },
+    {
+      "label": "terminal",
+      "type": "shell",
+      "command": "if [ -n \"$SHELL\" ]; then exec \"$SHELL\" -l; else exec /bin/bash -l; fi",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "runOptions": { "runOn": "folderOpen" },
+      "problemMatcher": []
+    }
+  ]
+}
+TASKS
+    fi
+
+    if [ ! -f .envrc ]; then
+        if [ -f uv.lock ]; then
+            echo "test -d .venv || python3.11 -m venv .venv" > .envrc
+            echo "source .venv/bin/activate" >> .envrc
+        elif [ -f poetry.lock ]; then
+            echo "poetry env use /usr/local/bin/python3.11" > .envrc
+            echo "poetry install" >> .envrc
+            echo "eval \$(poetry env activate)" >> .envrc
+        fi
+        if [ -f .envrc ] && command -v direnv >/dev/null 2>&1; then
+            direnv allow .
+        fi
+    fi
+
+    if [ -f .pre-commit-config.yaml ] && command -v uv >/dev/null 2>&1; then
+        uv tool run pre-commit install || true
+    fi
+    if { [ -f justfile ] || [ -f Justfile ]; } && command -v just >/dev/null 2>&1; then
+        just install || true
+    fi
+    if command -v code >/dev/null 2>&1; then
+        code . || true
+    else
+        echo "NOTE: 'code' not found; open VS Code manually."
+    fi
+}
+
 clone-ticket() {
-    local repo=$1
-    local ticket=$2
+    local repo=${1:-}
+    local ticket=${2:-}
     if [ -z "$repo" ] || [ -z "$ticket" ]; then
         echo "Usage: clone-ticket <repo> <ticket>"
         return 1
     fi
 
-    if [ "$repo" = "pymongo" ]; then
-        repo="mongo-python-driver"
-    elif [ "$repo" = "django" ]; then
-        repo="django-mongodb-backend"
-    elif [ "$repo" = "det" ]; then
-        repo="drivers-evergreen-tools"
-    fi
+    local resolved
+    resolved=$(_resolve_repo "$repo") || return 1
+    local org=${resolved%% *}
+    repo=${resolved##* }
 
-    local org
-    if gh api "repos/mongodb-labs/$repo" --silent 2>/dev/null; then
-        org="mongodb-labs"
-    elif gh api "repos/mongodb/$repo" --silent 2>/dev/null; then
-        org="mongodb"
-    else
-        echo "Error: '$repo' not found in mongodb-labs or mongodb"
+    local dest="$HOME/workspace/${repo}-${ticket}"
+    git clone --depth 1 --origin upstream "git@github.com:${org}/${repo}.git" "$dest" || return 1
+    cd "$dest" || return 1
+    git remote add origin "git@github.com:blink1073/${repo}.git"
+    git checkout -b "$ticket"
+    _adopt_plan "$ticket"
+    ticket-init
+}
+
+draft-plan() {
+    local repo=${1:-}
+    local plan=${2:-}
+    if [ -z "$repo" ] || [ -z "$plan" ]; then
+        echo "Usage: draft-plan <repo> <plan-name>"
         return 1
     fi
 
-    local dest="$HOME/workspace/${repo}-${ticket}"
-    git clone "git@github.com:${org}/${repo}.git" "$dest" --origin upstream || return 1
+    local resolved
+    resolved=$(_resolve_repo "$repo") || return 1
+    local org=${resolved%% *}
+    repo=${resolved##* }
+
+    mkdir -p "$HOME/workspace/drafts"
+    local dest="$HOME/workspace/drafts/$plan"
+    git clone --depth 1 --origin upstream "git@github.com:${org}/${repo}.git" "$dest" || return 1
     cd "$dest" || return 1
     git remote add origin "git@github.com:blink1073/${repo}.git"
-    echo "test -d .venv || python3.11 -m venv .venv" > .envrc
-    direnv allow .
-    git checkout -b "$ticket"
-    uv tool run pre-commit install
-    just install || true
+    git checkout -b "$plan"
+    ticket-init
 }
 
 export PROMPT_COMMAND='echo'
