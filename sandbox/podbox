@@ -119,6 +119,14 @@ EOF
     podman exec "$NAME" git config --global core.askPass true
   fi
 
+  # Share the host's global git ignore so sandbox checkouts ignore the same
+  # paths (e.g. .opencode/, .vscode/) and never commit work products.
+  if [ -r "$HOME/.gitignore" ]; then
+    podman cp "$HOME/.gitignore" "$NAME:/root/.gitignore"
+    podman exec "$NAME" git config --global core.excludesFile /root/.gitignore
+    info "gitignore /root/.gitignore"
+  fi
+
   # Export the mounted fireworks secret at shell start without baking it into env.
   podman exec "$NAME" bash -c '
     fmount=/run/secrets/podbox-fireworks
