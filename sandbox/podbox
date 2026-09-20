@@ -27,6 +27,18 @@
 #   podbox create            (reads ~/.local/share/opencode/auth.json)
 #   FIREWORKS_API_KEY=...      podbox create   (explicit override)
 # It is mounted as a secret and exported into the shell via a profile snippet.
+#
+# opencode runs with --auto: it auto-approves every `ask` but still enforces
+# `deny`. To keep that safe, the sandbox config is generated from the pinned
+# model plus the permission rules in ~/.config/opencode/opencode.jsonc and
+# bind-mounted read-only, so the agent cannot rewrite its own rules. Override
+# the entry with PODBOX_ENTRY (e.g. PODBOX_ENTRY=opencode to require prompts).
+#
+# Each sandbox is capped at PODBOX_MEMORY (default 3g) and refuses to start when
+# PODBOX_MAX_SANDBOXES (default 4) are already running, so concurrent sessions
+# can't exhaust the podman VM and trigger the kernel OOM-killer. The defaults
+# assume a 12 GiB VM; size the VM accordingly (on the host):
+#   podman machine stop && podman machine set --memory 12288 && podman machine start
 
 set -euo pipefail
 
@@ -35,9 +47,12 @@ IMAGE="${PODBOX_IMAGE:-fedora:latest}"
 NETWORK="${PODBOX_NETWORK:-}"
 GITHUB_USER="${GITHUB_USER:-}"
 PODBOX_MODEL="${PODBOX_MODEL:-fireworks-ai/accounts/fireworks/models/deepseek-v4p1-flash}"
-PODBOX_ENTRY="${PODBOX_ENTRY:-opencode}"
+PODBOX_ENTRY="${PODBOX_ENTRY:-opencode --auto}"
+PODBOX_MEMORY="${PODBOX_MEMORY:-3g}"
+PODBOX_MAX_SANDBOXES="${PODBOX_MAX_SANDBOXES:-4}"
 secret_gh="podbox-gh-token"
 secret_fw="podbox-fireworks"
+sandbox_label="podbox=1"
 
 die() { printf 'podbox: %s\n' "$*" >&2; exit 1; }
 
@@ -72,6 +87,29 @@ remove_secrets() {
   done
 }
 
+# --- opencode config ---------------------------------------------------------
+
+config_path() { # host-side path of the generated sandbox config
+  printf '%s/podbox-%s-opencode.json' "${XDG_CACHE_HOME:-$HOME/.cache}/podbox" "$NAME"
+}
+
+# Build the sandbox's opencode config: the pinned model plus the permission
+# rules from the host's installed config. The rules are the whole point of
+# --auto: it auto-approves every `ask`, so without them the agent could commit,
+# push, and open PRs unattended. Denies are copied verbatim; the file is mounted
+# read-only so the agent cannot relax its own rules from inside the sandbox.
+compose_config() { # outfile
+  local out="$1" host_cfg="$HOME/.config/opencode/opencode.jsonc" perms='{}'
+  if [ ! -r "$host_cfg" ]; then
+    info "no $host_cfg; sandbox runs with opencode's default permissions"
+  elif ! perms="$(jq -c '.permission // {}' "$host_cfg" 2>/dev/null)"; then
+    perms='{}'
+    info "couldn't parse $host_cfg; sandbox runs with opencode's default permissions"
+  fi
+  jq -n --arg model "$PODBOX_MODEL" --argjson perm "$perms" \
+    '{"$schema":"https://opencode.ai/config.json", model:$model, permission:$perm}' > "$out"
+}
+
 # --- container setup ---------------------------------------------------------
 
 setup_container() {
@@ -82,10 +120,10 @@ setup_container() {
     set -e
     command -v dnf >/dev/null 2>&1 && pkg=dnf || pkg=apt-get
     if [ "$pkg" = dnf ]; then
-      dnf -y install git python3 curl >/dev/null
+      dnf -y install git python3 python3-devel python3-pip gcc make curl >/dev/null
     else
       export DEBIAN_FRONTEND=noninteractive
-      apt-get update >/dev/null && apt-get -y install git python3 curl >/dev/null
+      apt-get update >/dev/null && apt-get -y install git python3 python3-dev python3-pip build-essential curl >/dev/null
     fi
   ' || die "package install failed"
 
@@ -136,15 +174,6 @@ EOF
     } > /etc/profile.d/podbox-env.sh
   ' || true
 
-  # Pin the default opencode model. The container's $HOME is fresh, so this is
-  # effective for every opencode run here and cannot be overridden by a mounted
-  # project's own opencode.json.
-  local cfg; cfg="$(mktemp)"
-  printf '{"$schema":"https://opencode.ai/config.json","model":"%s"}\n' "$PODBOX_MODEL" > "$cfg"
-  podman exec "$NAME" mkdir -p /root/.config/opencode
-  podman cp "$cfg" "$NAME:/root/.config/opencode/opencode.json"
-  rm -f "$cfg"
-
   info "secrets: $secret_gh (git), $secret_fw (fireworks)"
 }
 
@@ -187,6 +216,16 @@ ensure_created() {
   ensure_machine
   ensure_host_path
 
+  # The VM has a fixed memory budget; each sandbox is capped, so refuse to
+  # oversubscribe it. Count other running sandboxes (exclude this project's own,
+  # which create recreates).
+  local running
+  running="$(podman ps --filter "label=$sandbox_label" --format '{{.Names}}' \
+    | awk -v n="$NAME" '$0 != n' | wc -l | tr -d ' ')"
+  if [ "$running" -ge "$PODBOX_MAX_SANDBOXES" ]; then
+    die "$running sandboxes already running (max $PODBOX_MAX_SANDBOXES); remove one with 'podbox rm'"
+  fi
+
   # Recreate any stale container (e.g. a stopped one) so name collisions are safe.
   podman rm -f "$NAME" >/dev/null 2>&1 || true
 
@@ -205,15 +244,25 @@ ensure_created() {
     info "no FIREWORKS_API_KEY found (env or ~/.local/share/opencode/auth.json); fireworks won't be available"
   fi
 
+  # Generate the opencode config before the container starts so it can be
+  # bind-mounted read-only. The macOS podman VM only shares paths under $HOME,
+  # so it lives in the cache dir rather than /tmp.
+  local cfg; cfg="$(config_path)"
+  mkdir -p "$(dirname "$cfg")"
+  compose_config "$cfg"
+
   info "creating sandbox '$NAME' for $PWD"
   local netargs=()
   [ -n "$NETWORK" ] && netargs=(--network "$NETWORK")
   podman run -d --name "$NAME" --init \
     --rm \
+    --label "$sandbox_label" \
+    --memory "$PODBOX_MEMORY" \
     --workdir "$PWD" \
     --volume "$PWD:$PWD" \
-    "${netargs[@]}" \
-    "${secargs[@]}" \
+    --volume "$cfg:/root/.config/opencode/opencode.json:ro" \
+    ${netargs[@]+"${netargs[@]}"} \
+    ${secargs[@]+"${secargs[@]}"} \
     --hostname "$NAME" \
     --entrypoint bash \
     "$IMAGE" -c 'exec sleep infinity' >/dev/null \
@@ -236,6 +285,7 @@ EOF
     info "exited sandbox '$NAME' — tearing down"
     podman rm -f "$NAME" >/dev/null 2>&1 || true
     remove_secrets
+    rm -f "$(config_path)"
   fi
   exit $rc
 }
@@ -274,6 +324,7 @@ cmd_exec() {
 cmd_rm() {
   podman rm -f "$NAME" >/dev/null 2>&1 || true
   remove_secrets
+  rm -f "$(config_path)"
   info "removed '$NAME'"
 }
 
