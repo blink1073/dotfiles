@@ -7,9 +7,17 @@
 #                   drop you into an opencode session inside it
 #   podbox shell    exec an interactive bash shell in the running sandbox
 #   podbox exec CMD run a command inside the running sandbox
+#   podbox build    build the base image (git/python/gh/opencode)
 #   podbox rm       stop, remove the sandbox container and its secrets
 #   podbox status   show the sandbox container state
 #   podbox code     re-enter an opencode session in the running sandbox
+#
+# Containers run from a locally built image, tagged podbox-base:latest, rather
+# than a stock base. It is built from sandbox/Containerfile on the first
+# `podbox create` (or explicitly with `podbox build`) and cached by podman, so
+# later sandboxes start without re-running apt-get. Override the tag with
+# PODBOX_IMAGE; a stock image still works via the runtime fallback in
+# setup_container.
 #
 # Secrets are delivered as podman secrets (mounted at /run/secrets), never as
 # environment variables, so they are not visible via `podman inspect` or /proc.
@@ -43,7 +51,8 @@
 set -euo pipefail
 
 NAME="${PODBOX_NAME:-$(basename "$PWD" | tr 'A-Z ' 'a-z-' | tr -cd '[:alnum:]_-')}"
-IMAGE="${PODBOX_IMAGE:-fedora:latest}"
+IMAGE="${PODBOX_IMAGE:-podbox-base:latest}"
+CONTAINERFILE="${PODBOX_CONTAINERFILE:-}"
 NETWORK="${PODBOX_NETWORK:-}"
 GITHUB_USER="${GITHUB_USER:-}"
 PODBOX_MODEL="${PODBOX_MODEL:-fireworks-ai/accounts/fireworks/models/deepseek-v4p1-flash}"
@@ -110,27 +119,91 @@ compose_config() { # outfile
     '{"$schema":"https://opencode.ai/config.json", model:$model, permission:$perm}' > "$out"
 }
 
+# --- base image --------------------------------------------------------------
+
+# Path to the Containerfile. install.sh copies it next to this script as
+# podbox.Containerfile; running from the repo it sits in sandbox/.
+containerfile_path() {
+  local dir src="${BASH_SOURCE[0]}"
+  while [ -h "$src" ]; do
+    dir="$(cd -P "$(dirname "$src")" && pwd)"
+    src="$(readlink "$src")"
+    case "$src" in /*) ;; *) src="$dir/$src" ;; esac
+  done
+  dir="$(cd -P "$(dirname "$src")" && pwd)"
+  local candidates=(
+    "$CONTAINERFILE"
+    "$dir/podbox.Containerfile"
+    "$dir/Containerfile"
+    "$dir/sandbox/Containerfile"
+  )
+  local f
+  for f in "${candidates[@]}"; do
+    [ -n "$f" ] && [ -r "$f" ] && { printf '%s' "$f"; return 0; }
+  done
+  return 1
+}
+
+build_image() {
+  local cf
+  cf="$(containerfile_path)" || die "no Containerfile found; set PODBOX_CONTAINERFILE"
+  info "building base image '$IMAGE' from $cf (first run only)"
+  podman build -t "$IMAGE" -f "$cf" "$(dirname "$cf")" || die "base image build failed"
+}
+
+ensure_image() {
+  if podman image exists "$IMAGE"; then
+    return 0
+  fi
+  build_image
+}
+
 # --- container setup ---------------------------------------------------------
 
-setup_container() {
-  local have_gh
-  have_gh="$(podman exec "$NAME" sh -c '[ -r /run/secrets/podbox-gh-token ] && echo yes || echo no')"
-  info "installing git, gh, python into $NAME (first run may take a while)"
+# The base image already ships git/python/gh/opencode, so these normally no-op.
+# They remain as a fallback for stock images pulled via PODBOX_IMAGE.
+install_packages() {
+  local missing
+  missing="$(podman exec "$NAME" sh -c '
+    for c in git python3 gcc make curl; do
+      command -v "$c" >/dev/null 2>&1 || printf "%s " "$c"
+    done
+  ')"
+  [ -z "$missing" ] && return 0
+
+  info "installing $missing into $NAME (first run may take a while)"
   podman exec "$NAME" bash -c '
     set -e
-    command -v dnf >/dev/null 2>&1 && pkg=dnf || pkg=apt-get
-    if [ "$pkg" = dnf ]; then
-      dnf -y install git python3 python3-devel python3-pip gcc make curl >/dev/null
-    else
+    if command -v apt-get >/dev/null 2>&1; then
       export DEBIAN_FRONTEND=noninteractive
-      apt-get update >/dev/null && apt-get -y install git python3 python3-dev python3-pip build-essential curl >/dev/null
+      apt-get update >/dev/null
+      apt-get -y install --no-install-recommends git python3 python3-dev python3-pip python3-venv gcc make curl ca-certificates >/dev/null
+    else
+      dnf -y install git python3 python3-devel python3-pip gcc make curl >/dev/null
     fi
   ' || die "package install failed"
+}
 
+install_gh() {
+  if podman exec "$NAME" sh -c 'command -v gh >/dev/null 2>&1'; then
+    return 0
+  fi
   # gh (GitHub CLI) is best-effort; some distro repos don't carry it.
   podman exec "$NAME" bash -c '
-    command -v gh >/dev/null 2>&1 || { dnf -y install gh >/dev/null 2>&1 || apt-get -y install gh >/dev/null 2>&1; } || true
+    if command -v apt-get >/dev/null 2>&1; then
+      apt-get -y install gh >/dev/null 2>&1
+    else
+      dnf -y install gh >/dev/null 2>&1
+    fi
   ' >/dev/null 2>&1 || true
+}
+
+setup_container() {
+  install_packages
+  install_gh
+
+  local have_gh
+  have_gh="$(podman exec "$NAME" sh -c '[ -r /run/secrets/podbox-gh-token ] && echo yes || echo no')"
 
   # A credential helper that hands git only the injected read-only PAT.
   if [ "$have_gh" = yes ]; then
@@ -215,6 +288,7 @@ ensure_host_path() {
 ensure_created() {
   ensure_machine
   ensure_host_path
+  ensure_image
 
   # The VM has a fixed memory budget; each sandbox is capped, so refuse to
   # oversubscribe it. Count other running sandboxes (exclude this project's own,
@@ -328,6 +402,11 @@ cmd_rm() {
   info "removed '$NAME'"
 }
 
+cmd_build() {
+  ensure_machine
+  build_image
+}
+
 cmd_status() {
   podman ps --filter "name=${NAME}" --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
 }
@@ -342,6 +421,7 @@ case "${1:-}" in
   shell|sh) shift; cmd_shell "$@" ;;
   code) shift; cmd_code "$@" ;;
   exec) shift; cmd_exec "$@" ;;
+  build) shift; cmd_build "$@" ;;
   rm|destroy) shift; cmd_rm "$@" ;;
   status|ps) shift; cmd_status "$@" ;;
   help|-h|--help) usage ;;

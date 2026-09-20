@@ -48,6 +48,10 @@ exec >"$buf_file" 2>&1
 
 log() { echo "$*"; }
 
+# Section banner so the log reads as "what each phase did" rather than a flat
+# list of every checkout considered.
+section() { log ""; log "--- $* ---"; }
+
 # Drop log blocks older than 7 days. Each block begins at a "begin" header
 # whose 4th field is an ISO date, so blocks can be compared lexicographically.
 trim_log() {
@@ -144,23 +148,18 @@ prune_checkouts() {
             slug=$(github_slug "$url" 2>/dev/null) && slugs+=("$slug")
         done
         if [ "$name_match" -eq 1 ]; then
-            log "keep $base: checkout name matches repo name"
             continue
         fi
         if [ ${#slugs[@]} -eq 0 ]; then
-            log "keep $base: no GitHub remote"
             continue
         fi
         if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
-            log "keep $base: uncommitted changes"
             continue
         fi
         if [ -n "$(git -C "$dir" log --branches --not --remotes --oneline 2>/dev/null)" ]; then
-            log "keep $base: unpushed commits"
             continue
         fi
         if ! default=$(detect_default_branch "$dir" "${slugs[0]}"); then
-            log "keep $base: could not determine default branch"
             continue
         fi
         local -a branches=()
@@ -172,7 +171,6 @@ prune_checkouts() {
         local all_merged=1
         for b in "${branches[@]}"; do
             if ! merged_on_any "$b" "${slugs[@]}"; then
-                log "keep $base: branch '$b' has no merged PR"
                 all_merged=0
                 break
             fi
@@ -232,7 +230,6 @@ prune_drafts() {
             continue
         fi
         if has_recent_files "$d" 7; then
-            log "keep draft $name: touched this week"
             continue
         fi
         if [ -f "$d/PLAN.md" ]; then
@@ -243,8 +240,6 @@ prune_drafts() {
             log "delete draft $name: no plan and no changes"
             pruned=1
             run rm -rf "${d%/}"
-        else
-            log "keep draft $name: has changes"
         fi
     done
 }
@@ -268,7 +263,13 @@ prune_caches() {
     if command -v brew >/dev/null 2>&1; then
         log "brew cleanup"
         pruned=1
-        run brew cleanup
+        if [ "$DRY_RUN" -eq 1 ]; then
+            echo "[dry-run] brew cleanup"
+        else
+            # "Warning: Skipping ..." is noise about formulae the user never
+            # installed; only the reclamation lines are worth keeping.
+            brew cleanup 2>&1 | grep -v '^Warning: Skipping' || true
+        fi
     fi
     if command -v uv >/dev/null 2>&1; then
         log "uv cache prune"
@@ -293,9 +294,13 @@ prune_caches() {
 }
 
 log "=== workspace-prune begin $(date +%Y-%m-%dT%H:%M:%S) (dry_run=$DRY_RUN) ==="
+section "checkouts: ticket branches whose PRs have all merged"
 prune_checkouts
+section "drafts: stale ~/workspace/drafts"
 prune_drafts
+section "caches: pip/brew/uv/podman/docker/pre-commit"
 prune_caches
+log ""
 log "=== workspace-prune done $(date +%Y-%m-%dT%H:%M:%S) ==="
 
 # Publish: dry runs echo to the terminal; real runs write the block only when

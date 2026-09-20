@@ -107,6 +107,8 @@ install_file() { # src dst
 }
 install_file sandbox/podbox "$sandbox_bin/podbox"
 install_file sandbox/opencode-sandbox "$sandbox_bin/opencode-sandbox"
+# podbox looks for this next to itself to build the base image.
+install_file sandbox/Containerfile "$sandbox_bin/podbox.Containerfile"
 
 # Workspace prune schedule (runs hourly, does its work at most once a day).
 # macOS uses a LaunchAgent: cron there is deprecated and needs Full Disk Access,
