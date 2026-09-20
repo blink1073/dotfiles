@@ -97,14 +97,80 @@ npm ci --prefix "$opencode_dir"
 # Sandbox CLI (podbox + opencode-sandbox)
 sandbox_bin="$HOME/.local/bin"
 mkdir -p "$sandbox_bin"
-cp sandbox/podbox sandbox/opencode-sandbox "$sandbox_bin/"
-chmod +x "$sandbox_bin/podbox" "$sandbox_bin/opencode-sandbox"
 
-# Workspace prune cron (runs hourly, does its work at most once a day)
-cp cron/workspace-prune "$sandbox_bin/workspace-prune"
-chmod +x "$sandbox_bin/workspace-prune"
-if command -v crontab >/dev/null 2>&1; then
+# BSD cp exits 1 when src and dst are the same file (e.g. when a dotfiles
+# manager has symlinked the repo script into place), which aborts the whole
+# script under set -e. Skip the copy in that case.
+install_file() { # src dst
+  [ "$1" -ef "$2" ] || cp "$1" "$2"
+  chmod +x "$2"
+}
+install_file sandbox/podbox "$sandbox_bin/podbox"
+install_file sandbox/opencode-sandbox "$sandbox_bin/opencode-sandbox"
+
+# Workspace prune schedule (runs hourly, does its work at most once a day).
+# macOS uses a LaunchAgent: cron there is deprecated and needs Full Disk Access,
+# which makes a plain `crontab -` fail (with an admin-task prompt) on modern Macs.
+install_file cron/workspace-prune "$sandbox_bin/workspace-prune"
+
+# Best-effort migration: drop any workspace-prune entry left in cron. Reads the
+# crontab first so machines that never had one are left untouched (no write,
+# hence no admin-task prompt).
+remove_workspace_prune_cron() {
+  command -v crontab >/dev/null 2>&1 || return 0
+  local existing remaining
+  existing="$(crontab -l 2>/dev/null || true)"
+  printf '%s\n' "$existing" | grep -q 'workspace-prune' || return 0
+  remaining="$(printf '%s\n' "$existing" | grep -Fv 'workspace-prune' || true)"
+  if [ -n "$remaining" ]; then
+    printf '%s\n' "$remaining" | crontab -
+  else
+    crontab -r 2>/dev/null || true
+  fi
+  echo "removed workspace-prune entry from crontab"
+}
+
+label="com.podbox.workspace-prune"
+if [ "$(uname -s)" = Darwin ]; then
+  agents_dir="$HOME/Library/LaunchAgents"
+  plist="$agents_dir/$label.plist"
+  mkdir -p "$agents_dir" "$HOME/Library/Logs"
+  cat > "$plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>$label</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$sandbox_bin/workspace-prune</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Minute</key>
+    <integer>15</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>$HOME/Library/Logs/workspace-prune.log</string>
+  <key>StandardErrorPath</key>
+  <string>$HOME/Library/Logs/workspace-prune.log</string>
+</dict>
+</plist>
+EOF
+  # Reload so re-running install.sh picks up changes; ignore "not loaded".
+  launchctl bootout "gui/$(id -u)" "$plist" 2>/dev/null \
+    || launchctl unload "$plist" 2>/dev/null || true
+  launchctl bootstrap "gui/$(id -u)" "$plist" 2>/dev/null \
+    || launchctl load -w "$plist"
+  remove_workspace_prune_cron
+elif command -v crontab >/dev/null 2>&1; then
   # Replace any previous entry so re-running install.sh stays idempotent.
-  cron_line='15 * * * * $HOME/.local/bin/workspace-prune'
-  (crontab -l 2>/dev/null | grep -Fv 'workspace-prune'; echo "$cron_line") | crontab -
+  # `|| true` keeps `set -e` from aborting the group when there is no crontab
+  # yet (grep exits 1 on empty input), which would skip adding the entry.
+  cron_line="15 * * * * $sandbox_bin/workspace-prune"
+  {
+    crontab -l 2>/dev/null | grep -Fv 'workspace-prune' || true
+    echo "$cron_line"
+  } | crontab -
 fi
