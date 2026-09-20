@@ -1,1 +1,4 @@
 .DS_Store
+
+# Split out into its own repo: https://github.com/blink1073/ai-tools
+/ai-tools/
