@@ -538,18 +538,6 @@ ticket-init() {
       },
       "runOptions": { "runOn": "folderOpen" },
       "problemMatcher": []
-    },
-    {
-      "label": "terminal",
-      "type": "shell",
-      "command": "if [ -n \"$SHELL\" ]; then exec \"$SHELL\" -l; else exec /bin/bash -l; fi",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "focus": true
-      },
-      "runOptions": { "runOn": "folderOpen" },
-      "problemMatcher": []
     }
   ]
 }
