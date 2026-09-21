@@ -62,12 +62,6 @@ function evg-patch() {
 
 source ~/.bashrc
 
-# bind the Control-P/N keys for use in EMACS mode
-bindkey -M emacs '^P' history-substring-search-up
-bindkey -M emacs '^N' history-substring-search-down
-bindkey \^U backward-kill-line
-
-
 export GOPATH=$(go env GOPATH)
 export PATH=$PATH:$(go env GOPATH)/bin
 
