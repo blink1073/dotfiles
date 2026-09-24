@@ -564,11 +564,6 @@ TASKS
     if { [ -f justfile ] || [ -f Justfile ]; } && command -v just >/dev/null 2>&1; then
         just install || true
     fi
-    if command -v code >/dev/null 2>&1; then
-        code . || true
-    else
-        echo "NOTE: 'code' not found; open VS Code manually."
-    fi
 }
 
 clone-ticket() {
