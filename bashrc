@@ -268,85 +268,6 @@ function gra {
 }
 
 
-# Completion for just
-_just() {
-    local -a recipes
-    # Only provide custom completions if the command is exactly 'just'
-    if [[ $words[1] == just && $CURRENT -eq 2 ]]; then
-        if [[ -f justfile ]]; then
-            recipes=(${(z)$(just --summary 2>/dev/null)})
-            _describe 'recipe' recipes
-        fi
-    else
-        # Use default completion (fall back to _default or another suitable completer)
-        _default
-    fi
-}
-compdef _just just
-
-# ========================================
-# # tmp-env command for throwaway venvs
-# ========================================
-
-# Usage: tmp-env [-p 3.12] [requests]
-tmp-env() {
-  emulate -L zsh
-  set -u
-
-  # Parse: optional -p/--python VERSION ; then optional packages
-  # optional --checkout repo ; a repo to check out
-  local py=""
-  local checkout=""
-  local -a pkgs=()
-  while (( $# )); do
-    case "$1" in
-      -p|--python) py=$2; shift 2 ;;
-      --checkout) checkout=$2; shift 2 ;;
-      --) shift; break ;;  # stop option parsing
-      *) pkgs+=("$1"); shift ;;
-    esac
-  done
-
-  command -v uv >/dev/null || { print -ru2 "uv not found"; return 127; }
-
-  # Create a unique temp dir
-  local dir
-  dir=$(mktemp -d -t tmp-env.XXXXXXXX) || { print -ru2 "mktemp failed"; return 1; }
-
-  # Create the venv with uv
-  local -a venv_args=(--seed)
-  [[ -n $py ]] && venv_args+=(--python "$py")
-  venv_args+=("$dir")
-  uv venv --quiet "${venv_args[@]}" || { rmdir "$dir"; return 1; }
-
-  # Pre-install packages *into this venv specifically*
-  if (( ${#pkgs[@]} )); then
-    uv pip install --python "$dir/bin/python" "${pkgs[@]}"
-  fi
-
-  # Minimal ZDOTDIR so the child shell auto-activates & aliases deactivate->exit
-  local zd="$dir/_zdotdir"
-  mkdir -p "$zd" || { rm -rf "$dir"; return 1; }
-  cat > "$zd/.zshrc" <<'EOS'
-[[ -f "$HOME/.zshrc" ]] && source "$HOME/.zshrc"  # Keep user's config
-cd "$TMPVENV_DIR"
-source "./bin/activate"  # Activate the temp venv
-[[ -n $CHECKOUT_REPO ]] && git clone gh:$CHECKOUT_REPO ./checkout && cd ./checkout
-alias deactivate='exit'  # 'deactivate' ends the shell so cleanup runs
-print -P "Activated temp venv at:%f %F{cyan}$TMPVENV_DIR%f"
-print -P "Type %F{green}deactivate%f or %F{green}exit%f to deactivate and delete it."
-EOS
-
-  # Launch child interactive zsh that reads our tiny .zshrc
-  TMPVENV_DIR="$dir" ZDOTDIR="$zd" CHECKOUT_REPO="$checkout" zsh -i
-  local ec=$?
-
-  # Cleanup after child shell closes
-  [[ -d $dir ]] && rm -rf -- "$dir"
-  return $ec
-}
-
-
 workon() {
     local name=$1
     if [ ! -d "$HOME/workspace/$name" ] && [[ "$name" == *[0-9] ]]; then
@@ -611,11 +532,7 @@ draft-plan() {
 }
 
 # bind the Control-P/N keys for use in EMACS mode
-if [ -n "$ZSH_VERSION" ]; then
-    bindkey -M emacs '^P' history-substring-search-up
-    bindkey -M emacs '^N' history-substring-search-down
-    bindkey \^U backward-kill-line
-else
+if [ -n "$BASH_VERSION" ] && [[ $- == *i* ]]; then
     bind '"\C-p": history-search-backward'
     bind '"\C-n": history-search-forward'
     bind '\C-u: backward-kill-line'
