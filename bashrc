@@ -501,7 +501,7 @@ clone-ticket() {
     repo=${resolved##* }
 
     local dest="$HOME/workspace/${repo}-${ticket}"
-    git clone --depth 1 --origin upstream "git@github.com:${org}/${repo}.git" "$dest" || return 1
+    git clone --depth 1 --no-tags --origin upstream "git@github.com:${org}/${repo}.git" "$dest" || return 1
     cd "$dest" || return 1
     git remote add origin "git@github.com:blink1073/${repo}.git"
     git checkout -b "$ticket"
@@ -524,7 +524,7 @@ draft-plan() {
 
     mkdir -p "$HOME/workspace/drafts"
     local dest="$HOME/workspace/drafts/$plan"
-    git clone --depth 1 --origin upstream "git@github.com:${org}/${repo}.git" "$dest" || return 1
+    git clone --depth 1 --no-tags --origin upstream "git@github.com:${org}/${repo}.git" "$dest" || return 1
     cd "$dest" || return 1
     git remote add origin "git@github.com:blink1073/${repo}.git"
     git checkout -b "$plan"
