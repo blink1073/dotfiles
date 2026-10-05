@@ -95,7 +95,6 @@ alias el="ls $HOME/workspace/.venvs"
 alias pymongo="workon mongo-python-driver"
 alias mongoarrow="workon mongo-arrow"
 alias motor="workon motor"
-export DRIVERS_TOOLS="$HOME/workspace/drivers-evergreen-tools"
 alias run-server="$HOME/workspace/drivers-evergreen-tools/.evergreen/orchestration/drivers-orchestration run"
 
 export TMPDIR='/tmp'
