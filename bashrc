@@ -1,9 +1,6 @@
 
 export TWINE_USERNAME=__token__
 
-# Set the limit of open files to be a high number.
-ulimit -n 10240
-
 # Use the github token if available
 if [ -f ~/.gh_token ]; then
    source ~/.gh_token

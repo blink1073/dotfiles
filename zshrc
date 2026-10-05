@@ -7,6 +7,9 @@ DISABLE_COMPFIX="true"
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 
+# Set the limit of open files to be a high number.
+ulimit -n 10240
+
 export ZSH="$HOME/.oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
