@@ -21,8 +21,6 @@ for arg in "$@"; do
 done
 
 workspace="$HOME/workspace"
-drafts_dir="$workspace/drafts"
-plans_dir="$workspace/plans"
 state_dir="${XDG_CACHE_HOME:-$HOME/.cache}/workspace-prune"
 stamp_file="$state_dir/last-run"
 log_file="$state_dir/run.log"
@@ -187,68 +185,6 @@ prune_checkouts() {
     done
 }
 
-# True if $1 contains a file modified within the last $2 days.
-has_recent_files() {
-    local d=$1 days=$2
-    [ -n "$(find "$d" -type f -mtime -"$days" -print -quit 2>/dev/null)" ]
-}
-
-# True if a draft is a git checkout with a clean worktree and no commits
-# beyond its remotes (i.e. nothing worth keeping).
-draft_is_clean() {
-    local d=$1
-    [ -d "$d/.git" ] || return 1
-    [ -z "$(git -C "$d" status --porcelain 2>/dev/null)" ] || return 1
-    [ -z "$(git -C "$d" log --branches --not --remotes --oneline 2>/dev/null)" ] || return 1
-    return 0
-}
-
-# Move a draft's PLAN.md into ~/workspace/plans and drop the draft folder.
-move_plan() {
-    local d=$1 name=$2 dest
-    mkdir -p "$plans_dir"
-    dest="$plans_dir/$name.md"
-    if [ -e "$dest" ]; then
-        dest="$plans_dir/$name-$(date +%Y%m%d%H%M%S).md"
-    fi
-    log "move $d/PLAN.md -> $dest and delete draft $name"
-    pruned=1
-    if [ "$DRY_RUN" -eq 1 ]; then
-        echo "[dry-run] mv $d/PLAN.md $dest && rm -rf $d"
-    else
-        mv "$d/PLAN.md" "$dest" && rm -rf "$d"
-    fi
-}
-
-# Prune stale drafts: untouched for 30 days always goes; 7-30 days goes if it
-# has a plan (which is preserved) or if it is a clean, fully pushed checkout.
-prune_drafts() {
-    [ -d "$drafts_dir" ] || return 0
-    local d name
-    for d in "$drafts_dir"/*/; do
-        [ -d "$d" ] || continue
-        name=$(basename "${d%/}")
-        if ! has_recent_files "$d" 30; then
-            log "delete draft $name: untouched for 30 days"
-            pruned=1
-            run rm -rf "${d%/}"
-            continue
-        fi
-        if has_recent_files "$d" 7; then
-            continue
-        fi
-        if [ -f "$d/PLAN.md" ]; then
-            move_plan "${d%/}" "$name"
-            continue
-        fi
-        if draft_is_clean "$d"; then
-            log "delete draft $name: no plan and no changes"
-            pruned=1
-            run rm -rf "${d%/}"
-        fi
-    done
-}
-
 # Best-effort cache reclamation; each tool is skipped unless it is installed.
 prune_caches() {
     local pipcmd cache
@@ -301,8 +237,6 @@ prune_caches() {
 log "=== workspace-prune begin $(date +%Y-%m-%dT%H:%M:%S) (dry_run=$DRY_RUN) ==="
 section "checkouts: ticket branches whose PRs have all merged"
 prune_checkouts
-section "drafts: stale ~/workspace/drafts"
-prune_drafts
 section "caches: pip/brew/uv/podman/docker/pre-commit"
 prune_caches
 log ""
