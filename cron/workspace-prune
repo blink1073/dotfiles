@@ -169,12 +169,17 @@ prune_checkouts() {
             branches+=("$b")
         done < <(git -C "$dir" for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null)
         local all_merged=1
-        for b in "${branches[@]}"; do
-            if ! merged_on_any "$b" "${slugs[@]}"; then
-                all_merged=0
-                break
-            fi
-        done
+        # bash 3.2 + `set -u` treats an empty-array expansion as unbound, so
+        # guard like the slugs check above; zero non-default branches counts
+        # as all merged.
+        if [ ${#branches[@]} -gt 0 ]; then
+            for b in "${branches[@]}"; do
+                if ! merged_on_any "$b" "${slugs[@]}"; then
+                    all_merged=0
+                    break
+                fi
+            done
+        fi
         [ "$all_merged" -eq 1 ] || continue
         log "delete $base: name differs from repo and all branches have merged PRs"
         pruned=1
