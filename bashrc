@@ -428,29 +428,6 @@ ticket-init() {
     mkdir -p .opencode/work
     [ -f .opencode/work/NOTES.md ] || : > .opencode/work/NOTES.md
 
-    if [ ! -f .vscode/tasks.json ]; then
-        mkdir -p .vscode
-        cat > .vscode/tasks.json <<'TASKS'
-{
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "opencode-sandbox",
-      "type": "shell",
-      "command": "opencode-sandbox",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "focus": false
-      },
-      "runOptions": { "runOn": "folderOpen" },
-      "problemMatcher": []
-    }
-  ]
-}
-TASKS
-    fi
-
     if [ ! -f .envrc ]; then
         if [ -f uv.lock ]; then
             echo "test -d .venv || python3.11 -m venv .venv" > .envrc
@@ -491,6 +468,10 @@ clone-ticket() {
     cd "$dest" || return 1
     git remote add origin "git@github.com:blink1073/${repo}.git"
     git checkout -b "$ticket"
+    gh repo set-default "${org}/${repo}"
+    if [ -f .pre-commit-config.yaml ]; then
+        uv tool run pre-commit install
+    fi
     _adopt_plan "$ticket"
     ticket-init
 }
@@ -514,6 +495,10 @@ draft-plan() {
     cd "$dest" || return 1
     git remote add origin "git@github.com:blink1073/${repo}.git"
     git checkout -b "$plan"
+    gh repo set-default "${org}/${repo}"
+    if [ -f .pre-commit-config.yaml ]; then
+        uv tool run pre-commit install
+    fi
     ticket-init
 }
 
