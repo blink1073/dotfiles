@@ -310,16 +310,6 @@ ubuntu-test() {
     bash "$HOME/workspace/docker-tester/run.sh"
 }
 
-edit() {
-    local curpath=$(pwd)
-    while [ ! -d "$curpath/.git" ]
-    do
-        curpath=$(dirname ${curpath})
-    done
-    code $curpath
-}
-
-
 alias ubuntu="docker run -it -e GRANT_SUDO=yes --user root jupyter/minimal-notebook bash"
 
 _resolve_repo() {
