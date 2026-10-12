@@ -16,6 +16,7 @@ cp ~/.gitignore gitignore
 cp ~/.gitconfig gitconfig
 git config -f gitconfig --unset user.email || true
 git config -f gitconfig --unset user.signingkey || true
+git config -f gitconfig --unset commit.gpgsign || true
 
 # VSCode
 vscode="$HOME/Library/Application Support/Code/User"

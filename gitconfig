@@ -43,8 +43,6 @@
 	rebase = false
 [checkout]
     defaultRemote = origin
-[commit]
-	gpgsign = true
 [gpg]
 	format = ssh
 [credential]
