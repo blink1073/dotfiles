@@ -50,11 +50,11 @@ log() { echo "$*"; }
 # list of every checkout considered.
 section() { log ""; log "--- $* ---"; }
 
-# Drop log blocks older than 7 days. Each block begins at a "begin" header
+# Drop log blocks older than 30 days. Each block begins at a "begin" header
 # whose 4th field is an ISO date, so blocks can be compared lexicographically.
 trim_log() {
     local cutoff tmp
-    cutoff=$(date -d '7 days ago' +%F 2>/dev/null) || cutoff=$(date -v-7d +%F 2>/dev/null) || return 0
+    cutoff=$(date -d '30 days ago' +%F 2>/dev/null) || cutoff=$(date -v-30d +%F 2>/dev/null) || return 0
     tmp="$log_file.tmp"
     awk -v cutoff="$cutoff" '
         /^=== workspace-prune begin / {
@@ -151,6 +151,12 @@ prune_checkouts() {
         if [ ${#slugs[@]} -eq 0 ]; then
             continue
         fi
+        # Leave recently-touched checkouts alone: any working-tree file
+        # edited within the last 30 days (the .git dir is excluded, since
+        # git's own bookkeeping updates it) means the checkout is in use.
+        local recent
+        recent=$(find "$dir" -path "${dir}.git" -prune -o -type f -mtime -30 -print 2>/dev/null)
+        [ -n "$recent" ] && continue
         if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
             continue
         fi
@@ -243,7 +249,7 @@ log ""
 log "=== workspace-prune done $(date +%Y-%m-%dT%H:%M:%S) ==="
 
 # Publish: dry runs echo to the terminal; real runs write the block only when
-# a prune was attempted, then age out blocks past 7 days.
+# a prune was attempted, then age out blocks past 30 days.
 if [ "$DRY_RUN" -eq 1 ]; then
     cat "$buf_file" >&3
 elif [ "$pruned" -eq 1 ]; then
