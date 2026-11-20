@@ -322,13 +322,13 @@ _resolve_repo() {
     esac
 
     local org
-    for org in mongodb-labs mongodb 10gen blink1073 calysto scikit-image; do
+    for org in mongodb-labs mongodb 10gen devtools-shared blink1073 calysto scikit-image; do
         if gh api "repos/$org/$repo" --silent 2>/dev/null; then
             echo "$org $repo"
             return 0
         fi
     done
-    echo "Error: '$repo' not found in mongodb-labs, mongodb, 10gen, blink1073, calysto, or scikit-image" >&2
+    echo "Error: '$repo' not found in mongodb-labs, mongodb, 10gen, devtools-shared blink1073, calysto, or scikit-image" >&2
     return 1
 }
 
